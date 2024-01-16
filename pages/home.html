@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>LionSnake Modeler</title>
+		<link rel="stylesheet" href="home.css"/>
+		<script type="text/javascript" src="globals.js"></script>
+		<script type="text/javascript" src="home.js"></script>
+		<script type="text/javascript" src="LsmAxes.js"></script>
+		<script type="text/javascript" src="LsmToolbar.js"></script>
+		<script type="text/javascript" src="math.js"></script>
+		<script type="text/javascript" src="models.js"></script>
+		<script type="text/javascript" src="webgl.js"></script>
+	</head>
+	<body
+		onload="onLoad();"
+		onmousedown="onMouseDown(event);"
+		onmouseup="onMouseUp(event);"
+		onmousemove="onMouseMove(event);"
+		onclick="onMouseClick(event); return false;"
+		oncontextmenu="onContextMenu(event); return false;">
+		<table id="main">
+		<td id="toolbar">
+		<a class="button red" id="axis-xneg" onclick="xneg();">X&ndash;</a><br/>
+		<a class="button red" id="axis-xpos" onclick="xpos();">X+</a><br/>
+		<a class="button green" id="axis-yneg" onclick="yneg();">Y&ndash;</a><br/>
+		<a class="button green" id="axis-ypos" onclick="ypos();">Y+</a><br/>
+		<a class="button blue" id="axis-zneg" onclick="zneg();">Z&ndash;</a><br/>
+		<a class="button blue" id="axis-zpos" onclick="zpos();">Z+</a>
+		</td>
+		<td><canvas id="glcanvas"></canvas></td>
+		</tr></table>
+	</body>
+</html>
