@@ -16,34 +16,49 @@ class LsmAxes
 	{
 		const program = programs['solid'];
 		const attrib = program.attributes['aPos'];
-		const buffer = buffers['axis'];
 		const ebuffer = ebuffers['axis'];
 		const uni = program.uniforms['uColor'];
 		const proj = program.matrices['uProj'];
 		const trans = program.matrices['uTrans'];
 
-		// draw the x axis
 		gl.useProgram(program.loc);
-		gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+		gl.bindBuffer(gl.ARRAY_BUFFER, buffers['axis']);
 		gl.vertexAttribPointer(attrib.loc, attrib.len, attrib.type, false, attrib.stride, attrib.offset);
 		gl.enableVertexAttribArray(attrib.loc);
+		gl.enable(gl.DEPTH_TEST)
+
+		// draw the x axis
 		uni.func(uni.loc, this.xcolor);
 		gl.uniformMatrix4fv(trans.loc, false, this.xtrans);
 		gl.uniformMatrix4fv(proj.loc, false, new Float32Array(pers));
-		gl.enable(gl.DEPTH_TEST)
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ebuffer);
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ebuffers['axis']);
 		gl.drawElements(gl.LINES, 18, gl.UNSIGNED_SHORT, 0);
+
+		gl.uniformMatrix4fv(trans.loc, false, new Float32Array([.3,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]));
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ebuffers['rule1']);
+		gl.drawElements(gl.LINES, 40, gl.UNSIGNED_SHORT, 0);
+		gl.uniformMatrix4fv(trans.loc, false, new Float32Array([.3,0,0,0, 0,1,0,0, 0,0,1,0, .15,0,0,1]));
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ebuffers['rule2']);
+		gl.drawElements(gl.LINES, 40, gl.UNSIGNED_SHORT, 0);
+		gl.uniformMatrix4fv(trans.loc, false, new Float32Array([.3,0,0,0, 0,1,0,0, 0,0,1,0, -.15,0,0,1]));
+		gl.drawElements(gl.LINES, 40, gl.UNSIGNED_SHORT, 0);
 
 		// draw the y axis
 
 		uni.func(uni.loc, this.ycolor);
 		gl.uniformMatrix4fv(trans.loc, false, this.ytrans);
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ebuffers['axis']);
 		gl.drawElements(gl.LINES, 18, gl.UNSIGNED_SHORT, 0);
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ebuffers['rule1']);
+		gl.drawElements(gl.LINES, 40, gl.UNSIGNED_SHORT, 0);
 
 		// draw the z axis
 		uni.func(uni.loc, this.zcolor);
 		gl.uniformMatrix4fv(trans.loc, false, this.ztrans);
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ebuffers['axis']);
 		gl.drawElements(gl.LINES, 18, gl.UNSIGNED_SHORT, 0);
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ebuffers['rule1']);
+		gl.drawElements(gl.LINES, 40, gl.UNSIGNED_SHORT, 0);
 	}
 
 	// Replace with the function that will return the depth of the object if it intersects
