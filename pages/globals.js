@@ -14,10 +14,17 @@ const m_sav = [...identity];	// Saves off the starting rotation of the model
 let p_eye = [0,0,0];			// The current center of the model view
 const p_sav = [0,0,0];			// Saves off p_eye for drag operations
 
+const log10 = Math.log(10);
+
 let far = 1000;
 let near = -1000;
 let zoom = 1;
+let zoom_save = 1;
 let mouseMode = 0;
+let centerX = 0;
+let centerY = 0;
+
+let dragMode = 'r';
 
 const pers = [...identity];	// this is the projection matrix for the camera
 

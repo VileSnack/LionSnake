@@ -23,6 +23,9 @@ function renderScene(time)
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
+	centerX = gl.canvas.width / 2;
+	centerY = gl.canvas.height / 2;
+
 	let v_r = [m_rot[0], m_rot[4], m_rot[8]];
 	let v_u = [m_rot[1], m_rot[5], m_rot[9]];
 	let v_f = [m_rot[2], m_rot[6], m_rot[10]];
@@ -39,8 +42,8 @@ function renderScene(time)
 	multiply(
 		m_p,
 		[
-			zoom * d / gl.canvas.width, 0, 0, 0,
-			0, zoom * d / gl.canvas.height, 0, 0,
+			d / gl.canvas.width, 0, 0, 0,
+			0, d / gl.canvas.height, 0, 0,
 			0,0,1,0,
 			0,0,0,1
 		],

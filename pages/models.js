@@ -27,29 +27,62 @@ const programs = {
 				len: 4			// set to the number of elements in the uniform (1, 2, 3, 4)
 			}
 		}
+	},
+	'rules' : {
+		vshader:
+			'attribute vec4 aPos;'
+			+ ' uniform mat4 uProj;'
+			+ ' uniform mat4 uTrans;'
+			+ ' uniform float uOffset;'
+			+ ' uniform float uScale;'
+			+ ' void main() {'
+			+ ' gl_Position = uProj * uTrans * vec4(aPos.x + uOffset, aPos.y * uScale, aPos.z * uScale, aPos.w);'
+			+ ' }',
+		fshader: 'precision mediump float; uniform vec4 uColor; void main() { gl_FragColor = uColor; }',
+		loc: null,		// replaced with reference to linked program
+		attributes: {
+			'aPos': {
+				loc: null,		// set to the attribute location (returned by gl call for program)
+				len: 3,			// set to the number of elements in the attribute
+				type: 'float',	// set to the webgl constant for the type
+				stride: 0,		// the number of bytes skipped between instances
+				offset: 0		// the number of bytes from the buffer start
+			}
+		},
+		matrices: {
+			'uProj': {
+				loc: null,		// set to the attribute location (returned by gl call for program)
+			},
+			'uTrans': {
+				loc: null,		// set to the attribute location (returned by gl call for program)
+			}
+		},
+		uniforms: {
+			'uColor': {
+				loc: null,		// set to the attribute location (returned by gl call for program)
+				len: 4			// set to the number of elements in the uniform (1, 2, 3, 4)
+			},
+			'uOffset': {
+				loc: null,		// set to the attribute location (returned by gl call for program)
+				len: 1			// set to the number of elements in the uniform (1, 2, 3, 4)
+			},
+			'uScale': {
+				loc: null,		// set to the attribute location (returned by gl call for program)
+				len: 1			// set to the number of elements in the uniform (1, 2, 3, 4)
+			}
+		}
 	}
 }
 
 const buffers = {
 	'axis': { type: 'float', data: [1,0,0, -.9,0,0, .9,0,.05, .9,.05,0, .9,0,-.05, .9,-.05,0, -1,0,.05, -1,.05,0, -1,0,-.05, -1,-.05,0,
-		-.2,.01,.01,	-.2,-.01,.01,	-.2,-.01,-.01,	-.2,.01,-.01,
-		-.1,.01,.01,	-.1,-.01,.01,	-.1,-.01,-.01,	-.1,.01,-.01,
-		0,.03,.03,	0,-.03,.03,		0,-.03,-.03,	0,.03,-.03,
-		.1,.01,.01,	.1,-.01,.01,	.1,-.01,-.01,	.1,.01,-.01,
-		.2,.01,.01,	.2,-.01,.01,	.2,-.01,-.01,	.2,.01,-.01,
-
-		-.2,.01,.01,	-.2,-.01,.01,	-.2,-.01,-.01,	-.2,.01,-.01,
-		-.1,.01,.01,	-.1,-.01,.01,	-.1,-.01,-.01,	-.1,.01,-.01,
-		0,.02,.02,	0,-.02,.02,		0,-.02,-.02,	0,.02,-.02,
-		.1,.01,.01,	.1,-.01,.01,	.1,-.01,-.01,	.1,.01,-.01,
-		.2,.01,.01,	.2,-.01,.01,	.2,-.01,-.01,	.2,.01,-.01
+		0,-1,0, 0,1,0, 0,0,-1, 0,0,1
 	 ] }
 };
 
 const ebuffers= {
 	'axis': { type: 'uint16', data: [0,1, 0,2, 0,3, 0,4, 0,5, 1,6, 1,7, 1,8, 1,9] },
-	'rule1': { type: 'uint16', data: [10,11,11,12,12,13,13,10, 14,15,15,16,16,17,17,14, 18,19,19,20,20,21,21,18, 22,23,23,24,24,25,25,22, 26,27,27,28,28,29,29,26 ] },
-	'rule2': { type: 'uint16', data: [30,31,31,32,32,33,33,30, 34,35,35,36,36,37,37,34, 38,39,39,40,40,41,41,38, 42,43,43,44,44,45,45,42, 46,47,47,48,48,49,49,46 ] }
+	'rule': { type: 'uint16', data: [10,11,12,13 ] }
 };
 
 /*

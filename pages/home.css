@@ -19,56 +19,65 @@ canvas
 	height: 100%;
 	position: absolute;
 	top: 0px;
+	user-select: none;
 }
 
 #toolbar
 {
 	height: 100%;
-	background-color: none;
+	width: auto;
+	background-color: #dddddd;
 	vertical-align: top;
 	padding: 1px 0;
+	user-select: none;
 }
 
 #main
 {
+	height: 100%;
 	border: 0;
 	border-collapse: collapse;
 	margin: 0;
+	background-color: #dddddd;
 }
 
 .button
 {
 	display: inline-block;
 	width: 1.5em;
-	border: 1px outset;
-	border-radius: 2px;
+	background-color: #dddddd;
+	border-top: 1px solid white;
+	border-left: 1px solid white;
+	border-right: 1px solid #bbbbbb;
+	border-bottom: 1px solid #bbbbbb;
+	border-radius: 3px;
 	text-align: center;
 	vertical-align: center;
-	margin: 1px;
+	padding: 1px;
+	margin: 1px 2px;
 	font-family: sans-serif;
 	font-weight: bold;
+	font-size: 16px;
 	cursor: default;
 }
 
-.red
+.button:active, .set
 {
-	color: red;
+	border-top: 1px solid #bbbbbb;
+	border-left: 1px solid #bbbbbb;
+	border-right: 1px solid white;
+	border-bottom: 1px solid white;
+	padding: 2px 0 0 2px;
+	background-color: #ffffdd;
 }
 
-.green
-{
-	color: green;
-}
+.red { color: red; }
 
-.blue
-{
-	color: blue;
-}
+.green { color: green; }
 
-.hovertext {
-	position: relative;
-	border-bottom: 1px dotted black;
-}
+.blue { color: blue; }
+
+.hovertext { position: relative; }
 
 .hovertext:before {
 	content: attr(hover-text);

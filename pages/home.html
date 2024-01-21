@@ -11,13 +11,7 @@
 		<script type="text/javascript" src="models.js"></script>
 		<script type="text/javascript" src="webgl.js"></script>
 	</head>
-	<body
-		onload="onLoad();"
-		onmousedown="onMouseDown(event);"
-		onmouseup="onMouseUp(event);"
-		onmousemove="onMouseMove(event);"
-		onclick="onMouseClick(event); return false;"
-		oncontextmenu="onContextMenu(event); return false;">
+	<body onload="onLoad();">
 		<table id="main">
 		<td id="toolbar">
 		<a class="button red hovertext" id="axis-xneg" onclick="xneg();" hover-text="View from right">X&ndash;</a><br/>
@@ -25,9 +19,17 @@
 		<a class="button green hovertext" id="axis-yneg" onclick="yneg();" hover-text="View from above">Y&ndash;</a><br/>
 		<a class="button green hovertext" id="axis-ypos" onclick="ypos();" hover-text="View from below">Y+</a><br/>
 		<a class="button blue hovertext" id="axis-zneg" onclick="zneg();" hover-text="View from front">Z&ndash;</a><br/>
-		<a class="button blue hovertext" id="axis-zpos" onclick="zpos();" hover-text="View from rear">Z+</a>
+		<a class="button blue hovertext" id="axis-zpos" onclick="zpos();" hover-text="View from rear">Z+</a><br/>
+		<a class="button hovertext" id="mode-t" onclick="modeTranslate();" hover-text="Translate">T</a><br/>
+		<a class="button hovertext" id="mode-s" onclick="modeScale();" hover-text="Scale">S</a><br/>
+		<a class="button set hovertext" id="mode-r" onclick="modeRotate();" hover-text="Rotate">R</a><br/>
 		</td>
-		<td><canvas id="glcanvas"></canvas></td>
+		<td><canvas id="glcanvas"
+		onmousedown="onMouseDown(event);"
+		onmouseup="onMouseUp(event);"
+		onmousemove="onMouseMove(event);"
+		onclick="onMouseClick(event); return false;"
+		oncontextmenu="onContextMenu(event); return false;"></canvas></td>
 		</tr></table>
 	</body>
 </html>
