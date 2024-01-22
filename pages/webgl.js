@@ -26,34 +26,17 @@ function renderScene(time)
 	centerX = gl.canvas.width / 2;
 	centerY = gl.canvas.height / 2;
 
-	let v_r = [m_rot[0], m_rot[4], m_rot[8]];
-	let v_u = [m_rot[1], m_rot[5], m_rot[9]];
-	let v_f = [m_rot[2], m_rot[6], m_rot[10]];
-
-// tuck these into a matrix for easy multiplication
-	const m_p = [
-		m_rot[0], m_rot[1], m_rot[2], 0,
-		m_rot[4], m_rot[5], m_rot[6], 0,
-		m_rot[8], m_rot[9], m_rot[10], 0,
-		-dot(v_r,p_eye), -dot(v_u,p_eye), -dot(v_f,p_eye), 1];
-
 	let d = Math.min(gl.canvas.width, gl.canvas.height);
 
-	multiply(
-		m_p,
-		[
-			d / gl.canvas.width, 0, 0, 0,
-			0, d / gl.canvas.height, 0, 0,
-			0,0,1,0,
-			0,0,0,1
-		],
-		pers
-	);
-
 //	Perspective projection
-//	multiply(pers, [1,0,0,0, 0,1,0,0, 0,0,2 / (far - near),1, 0,0,(near + far)/(near - far),0], pers);
-//	Orthographics projection
-	multiply(pers, [1,0,0,0, 0,1,0,0, 0,0,2 / (far - near),0, 0,0,(near + far)/(near - far),1], pers);
+//	multiply(c2f, [1,0,0,0, 0,1,0,0, 0,0,2 / (far - near),1, 0,0,(near + far)/(near - far),0], c2f);
+//	Orthographic projection
+	c2f = [
+		d / gl.canvas.width,	0,						0,							0,
+		0,						d / gl.canvas.height,	0,							0,
+		0,						0,						2 / (far - near),			0,
+		0,						0,						(near + far)/(near - far),	1
+	];
 
 	if (true)
 	{
@@ -90,7 +73,7 @@ function renderScene(time)
 				}
 
 				item.calcBones.push([...matrix]);
-				multiply(matrix, pers, matrix);
+				multiply(matrix, c2f, matrix);
 				item.calcProjs.push([...matrix]);
 			});
 

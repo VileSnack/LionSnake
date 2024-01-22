@@ -15,7 +15,7 @@ function yneg()
 
 function ypos()
 {
-	m_rot = [ 1,0,0,0, 0,0,-1,0, 0, 1,0,0, 0,0,0,1];
+	m_rot = [-1,0,0,0, 0,0, 1,0, 0,1,0,0, 0,0,0,1];
 }
 
 function zneg()

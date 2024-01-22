@@ -7,12 +7,11 @@ let background = [.5, .5, .5, 1.0];	//	The background color
 
 const p_l = [-1,2,-7.3];	// The location of the camera, in world coordinates
 const v_s = [0,1,0];	// Points to the sky, in world coordinates
-const p_e = [0,0,0];	// The spot where the camera is looking, in world coordinates
 
 let m_rot = [...identity];	// The current rotation of the model view
 const m_sav = [...identity];	// Saves off the starting rotation of the model
 let p_eye = [0,0,0];			// The current center of the model view
-const p_sav = [0,0,0];			// Saves off p_eye for drag operations
+let p_sav = [0,0,0];			// Saves off p_eye for drag operations
 
 const log10 = Math.log(10);
 
@@ -26,7 +25,7 @@ let centerY = 0;
 
 let dragMode = 'r';
 
-const pers = [...identity];	// this is the projection matrix for the camera
+let c2f = [...identity];	// this is the projection matrix for the camera
 
 const renderCalls = [];
 

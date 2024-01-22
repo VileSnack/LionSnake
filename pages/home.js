@@ -151,11 +151,14 @@ function onMouseDown(e)
 
 	switch (dragMode)
 	{
+		case 's':
+			zoom_save = zoom;
+		break;
 		case 'r':
 			for (let i = 0; i < 16; i++) m_sav[i] = m_rot[i];
 		break;
-		case 's':
-			zoom_save = zoom;
+		case 't':
+			p_sav = [...p_eye];
 		break;
 	}
 
@@ -165,11 +168,6 @@ function onMouseDown(e)
 function onMouseUp(e)
 {
 	mouseMode = 0;
-}
-
-function onFalseStart(e)
-{
-	mousemode = -1;
 }
 
 function onMouseMove(e)
@@ -183,6 +181,15 @@ function onMouseMove(e)
 
 			switch (dragMode)
 			{
+				case 's':
+					const dx1 = downX - centerX;
+					const dy1 = downY - centerY;
+					const dx2 = e.clientX - centerX;
+					const dy2 = e.clientY - centerY;
+					const mag1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
+					const mag2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+					if (mag2 !== 0) zoom = zoom_save * mag2 / mag1;
+				break;
 				case 'r':
 					if (0 === mag)
 					{
@@ -206,14 +213,13 @@ function onMouseMove(e)
 						);
 					}
 				break;
-				case 's':
-					const dx1 = downX - centerX;
-					const dy1 = downY - centerY;
-					const dx2 = e.clientX - centerX;
-					const dy2 = e.clientY - centerY;
-					const mag1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
-					const mag2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
-					if (mag2 !== 0) zoom = zoom_save * mag2 / mag1;
+				case 't':
+					const d = Math.min(gl.canvas.width, gl.canvas.height);
+					const dx = (e.clientX - downX) / d;
+					const dy = (e.clientY - downY) / d;
+					p_eye[0] = p_sav[0] - (m_rot[0] * dx - m_rot[1] * dy) * 2 / zoom;
+					p_eye[1] = p_sav[1] - (m_rot[4] * dx - m_rot[5] * dy) * 2 / zoom;
+					p_eye[2] = p_sav[2] - (m_rot[8] * dx - m_rot[9] * dy) * 2 / zoom;
 				break;
 			}
 
