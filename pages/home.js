@@ -149,6 +149,8 @@ function onMouseDown(e)
 	downX = e.clientX;
 	downY = e.clientY;
 
+	dragMode = document.toolbar.mode.value;
+
 	switch (dragMode)
 	{
 		case 's':

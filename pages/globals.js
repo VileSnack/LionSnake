@@ -23,7 +23,7 @@ let mouseMode = 0;
 let centerX = 0;
 let centerY = 0;
 
-let dragMode = 'r';
+let dragMode = 't';
 
 let c2f = [...identity];	// this is the projection matrix for the camera
 

@@ -2,6 +2,7 @@
 	margin: 0;
 	padding: 0;
 	border: 0;
+	font-family: sans-serif;
 }
 html {
 	width: 100%;
@@ -44,7 +45,7 @@ canvas
 .button
 {
 	display: inline-block;
-	width: 1.5em;
+	width: 24px;
 	background-color: #dddddd;
 	border-top: 1px solid white;
 	border-left: 1px solid white;
@@ -55,13 +56,21 @@ canvas
 	vertical-align: center;
 	padding: 1px;
 	margin: 1px 2px;
-	font-family: sans-serif;
 	font-weight: bold;
 	font-size: 16px;
 	cursor: default;
 }
 
-.button:active, .set
+a.small {
+	padding: 3px 1px;
+	font-size: 12px;
+}
+
+a.small:active {
+	padding: 4px 0 2px 2px;
+}
+
+.button:active
 {
 	border-top: 1px solid #bbbbbb;
 	border-left: 1px solid #bbbbbb;
@@ -69,6 +78,52 @@ canvas
 	border-bottom: 1px solid white;
 	padding: 2px 0 0 2px;
 	background-color: #ffffdd;
+}
+
+.customcheck {
+	display: inline-block;
+	margin: 1px 2px;
+	padding: 0;
+}
+
+.customcheck input {
+	display: none;
+}
+
+.customcheck span {
+	display: block;
+	width: 24px;
+	background-color: #dddddd;
+	border-top: 1px solid white;
+	border-left: 1px solid white;
+	border-right: 1px solid #bbbbbb;
+	border-bottom: 1px solid #bbbbbb;
+	border-radius: 3px;
+	text-align: center;
+	vertical-align: center;
+	padding: 1px;
+	font-family: sans-serif;
+	font-weight: bold;
+	font-size: 16px;
+	cursor: default;
+}
+
+.customcheck span.small {
+	padding: 3px 1px 3px 1px;
+	font-size: 12px;
+}
+
+.customcheck input:checked + span {
+	border-top: 1px solid #bbbbbb;
+	border-left: 1px solid #bbbbbb;
+	border-right: 1px solid white;
+	border-bottom: 1px solid white;
+	padding: 2px 0 0 2px;
+	background-color: #ffffdd;
+}
+
+.customcheck input:checked + span.small {
+	padding: 4px 0 2px 2px;
 }
 
 .red { color: red; }
@@ -93,7 +148,7 @@ canvas
 	transition: opacity .5s ease-in-out;
 	position: absolute;
 	z-index: 1;
-	left: 2em;
+	left: 2.5em;
 	top: 0;
 	font-weight: normal;
 	font-size: 12px;
@@ -102,4 +157,62 @@ canvas
 .hovertext:hover:before {
 	opacity: 1;
 	visibility: visible;
+}
+
+.popup {
+	position: absolute;
+	left: 100px;
+	top: 100px;
+	z-index: 1;
+	border: 1px solid black;
+	border-radius: 7px;
+	background-color: white;
+}
+
+.popup-top {
+	width: auto;
+	text-align: center;
+	color: black;
+	background-color: lightblue;
+	border-radius: 5px 5px 0 0;
+	border-bottom: 1px solid black;
+	padding: 3px 1px;
+	font-size: 12pt;
+}
+
+.popup-body {
+	padding: 7px;
+}
+
+.popup-body select,input {
+	border: 1px solid black;
+}
+
+select, input { outline: 0 }
+
+option {
+	border-radius: 0;
+}
+
+.bozo {
+	background-color: white;
+	font-size: 12pt;
+	padding: 1px 2px;
+	border: 1px solid black;
+	border-radius: 3px;
+}
+
+.bozo:hover {
+	background-color: lightblue;
+}
+
+.close_button {
+	background-color: red;
+	color: white;
+	border-radius: 3px;
+	width: 17px;
+	text-align: center;
+	cursor: default;
+	margin-right: 3px;
+	float: right;
 }

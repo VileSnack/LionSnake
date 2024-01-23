@@ -6,23 +6,29 @@
 		<script type="text/javascript" src="globals.js"></script>
 		<script type="text/javascript" src="home.js"></script>
 		<script type="text/javascript" src="LsmAxes.js"></script>
+		<script type="text/javascript" src="LsmModel.js"></script>
 		<script type="text/javascript" src="LsmToolbar.js"></script>
 		<script type="text/javascript" src="math.js"></script>
 		<script type="text/javascript" src="models.js"></script>
+		<script type="text/javascript" src="popups.js"></script>
 		<script type="text/javascript" src="webgl.js"></script>
 	</head>
 	<body onload="onLoad();">
 		<table id="main">
 		<td id="toolbar">
+		<form name="toolbar">
 		<a class="button red hovertext" id="axis-xneg" onclick="xneg();" hover-text="View from right">X&ndash;</a><br/>
 		<a class="button red hovertext" id="axis-xpos" onclick="xpos();" hover-text="View from left">X+</a><br/>
 		<a class="button green hovertext" id="axis-yneg" onclick="yneg();" hover-text="View from above">Y&ndash;</a><br/>
 		<a class="button green hovertext" id="axis-ypos" onclick="ypos();" hover-text="View from below">Y+</a><br/>
 		<a class="button blue hovertext" id="axis-zneg" onclick="zneg();" hover-text="View from front">Z&ndash;</a><br/>
 		<a class="button blue hovertext" id="axis-zpos" onclick="zpos();" hover-text="View from rear">Z+</a><br/>
-		<a class="button hovertext" id="mode-s" onclick="modeScale();" hover-text="Scale">S</a><br/>
-		<a class="button hovertext" id="mode-r" onclick="modeRotate();" hover-text="Rotate">R</a><br/>
-		<a class="button set hovertext" id="mode-t" onclick="modeTranslate();" hover-text="Translate">T</a><br/>
+		<label class="customcheck"><input type="radio" name="mode" value="sel" checked /><span class="small hovertext" hover-text="Select">Sel</span></label><br/>
+		<label class="customcheck"><input type="radio" name="mode" value="s" /><span class="hovertext" hover-text="Scale">S</span></label><br/>
+		<label class="customcheck"><input type="radio" name="mode" value="r" /><span class="hovertext" hover-text="Rotate">R</span></label><br/>
+		<label class="customcheck"><input type="radio" name="mode" value="t" /><span class="hovertext" hover-text="Translate">T</span></label><br/>
+		<a class="button small hovertext" id="edit-add" onclick="add();" hover-text="Add object to scene">Add</a><br/>
+		</form>
 		</td>
 		<td><canvas id="glcanvas"
 		onmousedown="onMouseDown(event);"
@@ -31,5 +37,28 @@
 		onclick="onMouseClick(event); return false;"
 		oncontextmenu="onContextMenu(event); return false;"></canvas></td>
 		</tr></table>
+		<div id="add-popup" class="popup" style="width: 20em; height: auto; display: none;">
+		<div class="popup-top">
+			<span>Add Object</span>
+			<span class="close_button" onclick="document.querySelector('#add-popup').style.display = 'none';">x</span>
+		</div>
+		<div class="popup-body">
+		<form name="add_object">
+		<table>
+		<tr><td style="width: 6em;">Type</td>
+		<td><select name="type" onchange="updateAddPopup();">
+			<option value="">Select type</option>
+			<option value="box">Box</option>
+			<option value="torus" disabled>Torus</option>
+		</select></td>
+		</tr>
+		<tr id="scale_x" style="display: none;"><td>Scale X</td><td><input type="number" name="scale_x" value="1"/></td></tr>
+		<tr id="scale_y" style="display: none;"><td>Scale Y</td><td><input type="number" name="scale_y" value="1"/></td></tr>
+		<tr id="scale_z" style="display: none;"><td>Scale Z</td><td><input type="number" name="scale_z" value="1"/></td></tr>
+		<tr id="add_it" style="display: none;"><td></td><td><button class="bozo" type="button" onclick="AddObject();">Add</button></td></tr>
+		</table>
+		</form>
+		</div>
+		</div>
 	</body>
 </html>

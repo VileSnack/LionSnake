@@ -30,14 +30,8 @@ const programs = {
 	},
 	'rules' : {
 		vshader:
-			'attribute vec4 aPos;'
-			+ ' uniform mat4 uProj;'
-			+ ' uniform mat4 uTrans;'
-			+ ' uniform float uOffset;'
-			+ ' uniform float uScale;'
-			+ ' void main() {'
-			+ ' gl_Position = uProj * uTrans * vec4(aPos.x + uOffset, aPos.y * uScale, aPos.z * uScale, aPos.w);'
-			+ ' }',
+			'attribute vec4 aPos; uniform mat4 uProj; uniform mat4 uTrans; uniform float uOffset; uniform float uScale;'
+			+ ' void main() { gl_Position = uProj * uTrans * vec4(aPos.x + uOffset, aPos.y * uScale, aPos.z * uScale, aPos.w); }',
 		fshader: 'precision mediump float; uniform vec4 uColor; void main() { gl_FragColor = uColor; }',
 		loc: null,		// replaced with reference to linked program
 		attributes: {
@@ -67,6 +61,40 @@ const programs = {
 				len: 1			// set to the number of elements in the uniform (1, 2, 3, 4)
 			},
 			'uScale': {
+				loc: null,		// set to the attribute location (returned by gl call for program)
+				len: 1			// set to the number of elements in the uniform (1, 2, 3, 4)
+			}
+		}
+	},
+	'verts' : {
+		vshader:
+			'attribute vec4 aPos; uniform mat4 uProj; uniform mat4 uTrans; uniform float uSize;'
+			+ ' void main() { gl_Position = uProj * uTrans * aPos.x; gl_PointSize = uSize; }',
+		fshader: 'precision mediump float; uniform vec4 uColor; void main() { gl_FragColor = uColor; }',
+		loc: null,		// replaced with reference to linked program
+		attributes: {
+			'aPos': {
+				loc: null,		// set to the attribute location (returned by gl call for program)
+				len: 3,			// set to the number of elements in the attribute
+				type: 'float',	// set to the webgl constant for the type
+				stride: 0,		// the number of bytes skipped between instances
+				offset: 0		// the number of bytes from the buffer start
+			}
+		},
+		matrices: {
+			'uProj': {
+				loc: null,		// set to the attribute location (returned by gl call for program)
+			},
+			'uTrans': {
+				loc: null,		// set to the attribute location (returned by gl call for program)
+			}
+		},
+		uniforms: {
+			'uColor': {
+				loc: null,		// set to the attribute location (returned by gl call for program)
+				len: 4			// set to the number of elements in the uniform (1, 2, 3, 4)
+			},
+			'uSize': {
 				loc: null,		// set to the attribute location (returned by gl call for program)
 				len: 1			// set to the number of elements in the uniform (1, 2, 3, 4)
 			}
