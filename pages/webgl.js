@@ -28,13 +28,15 @@ function renderScene(time)
 
 	let d = Math.min(gl.canvas.width, gl.canvas.height);
 
+	const pers = document.toolbar.pers.checked ? 1/6 : 0;
+
 //	Perspective projection
 //	multiply(c2f, [1,0,0,0, 0,1,0,0, 0,0,2 / (far - near),1, 0,0,(near + far)/(near - far),0], c2f);
 //	Orthographic projection
 	c2f = [
 		d / gl.canvas.width,	0,						0,							0,
 		0,						d / gl.canvas.height,	0,							0,
-		0,						0,						2 / (far - near),			0,
+		0,						0,						2 / (far - near),			pers,
 		0,						0,						(near + far)/(near - far),	1
 	];
 
