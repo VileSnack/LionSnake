@@ -2,25 +2,22 @@ class LsmModel extends LsmProject
 {
 	static index = 1;
 
-	constructor ()
+	constructor (params)
 	{
-		super();
+		super(params);
 		this.verts = [];
 		this.buffer = null;
 		this.count = 0;
-		this.view = new LsmView({pLocation: [0,0,-1], pLookAt: [0,0,0], sAngle: 19 });
+		this.view = new LsmView({ handedness: this.handedness, sAngle: 19 });
 		this.name = 'Model' + LsmModel.index++;
 		this.axesOn = true;
-		this.ang = 19;
-		this.cam_proj = this.view.recalc();
-		this.mouseMode = 0;
-		this.obj_s = 1;
-		this.obj_s_save = 1;
-		this.obj_r = [1,0,0, 0,1,0, 0,0,1];
-		this.obj_r_save = [1,0,0, 0,1,0, 0,0,1];
-		this.obj_t = [0,0,0];
-		this.obj_t_save = [0,0,0];
-
+		this.cam_proj = [...identity];
+		this.obj_s = this.view.sZoom;
+		this.obj_s_save = this.obj_s;
+		this.obj_r = [...this.view.vRight, ...this.view.vUp, ...this.view.vDirection];
+		this.obj_r_save = [...this.obj_r];
+		this.obj_t = [...this.view.pLookAt];
+		this.obj_t_save = [...this.obj_t];
 		this.downX = 0;
 		this.downY = 0;
 	}
@@ -84,19 +81,36 @@ class LsmModel extends LsmProject
 	{
 		document.querySelector('#toolbar').innerHTML = '<form name="toolbar">'
 		+ '<a class="button small hovertext" id="button-new-project" onclick="showPopup(\'popup-new-project\');" hover-text="New Project">New</a><br/>'
-		+ '<a class="button red hovertext" id="view-r" onclick="thisProject.xneg();" hover-text="View from right">X&ndash;</a><br/>'
-		+ '<a class="button red hovertext" id="view-l" onclick="thisProject.xpos();" hover-text="View from left">X+</a><br/>'
-		+ '<a class="button green hovertext" id="view-a" onclick="thisProject.yneg();" hover-text="View from above">Y&ndash;</a><br/>'
-		+ '<a class="button green hovertext" id="view-u" onclick="thisProject.ypos();" hover-text="View from under">Y+</a><br/>'
-		+ '<a class="button blue hovertext" id="view-f" onclick="thisProject.zneg();" hover-text="View from front">Z&ndash;</a><br/>'
-		+ '<a class="button blue hovertext" id="view-b" onclick="thisProject.zpos();" hover-text="View from back">Z+</a><br/>'
+		+ '<a class="button red hovertext" onclick="thisProject.xneg();" hover-text="View from right">X&ndash;</a><br/>'
+		+ '<a class="button red hovertext" onclick="thisProject.xpos();" hover-text="View from left">X+</a><br/>'
+		+ '<a class="button green hovertext" id="view-yneg" onclick="thisProject.yneg();">Y&ndash;</a><br/>'
+		+ '<a class="button green hovertext" id="view-ypos" onclick="thisProject.ypos();">Y+</a><br/>'
+		+ '<a class="button blue hovertext" id="view-zneg" onclick="thisProject.zneg();">Z&ndash;</a><br/>'
+		+ '<a class="button blue hovertext" id="view-zpos" onclick="thisProject.zpos();">Z+</a><br/>'
 		+ '<label class="customcheck"><input type="checkbox" name="pers" onchange="thisProject.recalcCamera();"/><span class="hovertext" hover-text="Toggle perspective">P</span></label><br/>'
 		+ '<label class="customcheck"><input type="radio" name="mode" value="sel" checked /><span class="small hovertext" hover-text="Select">Sel</span></label><br/>'
 		+ '<label class="customcheck"><input type="radio" name="mode" value="s" /><span class="hovertext" hover-text="Scale">S</span></label><br/>'
 		+ '<label class="customcheck"><input type="radio" name="mode" value="r" /><span class="hovertext" hover-text="Rotate">R</span></label><br/>'
 		+ '<label class="customcheck"><input type="radio" name="mode" value="t" /><span class="hovertext" hover-text="Translate">T</span></label><br/>'
-		+ '<a class="button small hovertext" id="edit-add" onclick="showPopup(\'add-popup\');" hover-text="Add object to scene">Add</a><br/>'
+		+ '<a class="button small hovertext" id="edit-add" onclick="showPopup(\'add-popup\');" hover-text="Add gemoetry to model">Add</a><br/>'
 		+ '</form>';
+
+		if ('l' === this.handedness)
+		{
+			document.querySelector('#view-yneg').setAttribute('hover-text', 'View from above');
+			document.querySelector('#view-ypos').setAttribute('hover-text', 'View from below');
+			document.querySelector('#view-zneg').setAttribute('hover-text', 'View from front');
+			document.querySelector('#view-zpos').setAttribute('hover-text', 'View from back');
+		}
+		else
+		{
+			document.querySelector('#view-yneg').setAttribute('hover-text', 'View from front');
+			document.querySelector('#view-ypos').setAttribute('hover-text', 'View from back');
+			document.querySelector('#view-zneg').setAttribute('hover-text', 'View from above');
+			document.querySelector('#view-zpos').setAttribute('hover-text', 'View from below');
+		}
+
+		this.cam_proj = this.view.recalc();
 	}
 
 	recalcCamera()
@@ -185,31 +199,31 @@ class LsmModel extends LsmProject
 
 	xneg()
 	{
-		if (this.view.hand > 0)
+		if (this.handedness === 'l')
 		{
 			this.obj_r = [0,0,-1, 0,1,0, 1,0,0];
 		}
 		else
 		{
-			this.obj_r = [-1,0,0, 0,0,-1, 0,1,0];
+			this.obj_r = [0,0,-1, 1,0,0, 0,1,0];
 		}
 	}
 
 	xpos()
 	{
-		if (this.view.hand > 0)
+		if (this.handedness === 'l')
 		{
 			this.obj_r = [0,0,1, 0,1,0, -1,0,0];
 		}
 		else
 		{
-			this.obj_r = [1,0,0, 0,0,1, 0,1,0];
+			this.obj_r = [0,0,1, -1,0,0, 0,1,0];
 		}
 	}
 
 	yneg()
 	{
-		if (this.view.hand > 0)
+		if (this.handedness === 'l')
 		{
 			this.obj_r = [1,0,0, 0,0,-1, 0,1,0];
 		}
@@ -221,7 +235,7 @@ class LsmModel extends LsmProject
 
 	ypos()
 	{
-		if (this.view.hand > 0)
+		if (this.handedness === 'l')
 		{
 			this.obj_r = [-1,0,0, 0,0,1, 0,1,0];
 		}
@@ -233,40 +247,26 @@ class LsmModel extends LsmProject
 
 	zneg()
 	{
-		if (this.view.hand > 0)
+		if (this.handedness === 'l')
 		{
 			this.obj_r = [-1,0,0, 0,1,0, 0,0,-1];
 		}
 		else
 		{
-			this.obj_r = [-1,0,0, 0,0,-1, 0,1,0];
+			this.obj_r = [1,0,0, 0,1,0, 0,0,-1];
 		}
 	}
 
 	zpos()
 	{
-		if (this.view.hand > 0)
+		if (this.handedness === 'l')
 		{
 			this.obj_r = [1,0,0, 0,1,0, 0,0,1];
 		}
 		else
 		{
-			this.obj_r = [1,0,0, 0,0,1, 0,1,0];
+			this.obj_r = [-1,0,0, 0,1,0, 0,0,1];
 		}
-	}
-}
-
-function createProject()
-{
-	document.querySelector('#popup-new-project').style.display = 'none';
-
-	switch (document.create_project.type.value)
-	{
-		case 'model':
-			thisProject = new LsmModel();
-			projects.push(thisProject);
-			activateProject(thisProject);
-		break;
 	}
 }
 

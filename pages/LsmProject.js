@@ -1,10 +1,19 @@
 class LsmProject {
-	constructor (data)
+	constructor (params)
 	{
-		if (('undefined' === typeof data)
-			|| (null === data))
+		if (('undefined' === typeof params)
+			|| (null === params))
 		{
-			data = {};
+			params = {};
+		}
+
+		if ('handedness' in params)
+		{
+			this.handedness = params.handedness;
+		}
+		else
+		{
+			this.handedness = 'l';
 		}
 
 		this.view = new LsmView({});
@@ -49,4 +58,18 @@ function activateProject(project)
 	document.title = `${thisProject.name} - The LionSnake Modeler`;
 
 	thisProject.setToolbar();
+}
+
+function createProject()
+{
+	document.querySelector('#popup-new-project').style.display = 'none';
+
+	switch (document.create_project.type.value)
+	{
+		case 'model':
+			thisProject = new LsmModel({ handedness: document.create_project.handedness.value });
+			projects.push(thisProject);
+			activateProject(thisProject);
+		break;
+	}
 }

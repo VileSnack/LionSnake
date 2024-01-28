@@ -9,13 +9,22 @@ class LsmView
 			settings = { };
 		}
 
+		if ('handedness' in settings)
+		{
+			this.handedness = settings.handedness.substring(0,1);
+		}
+		else
+		{
+			this.handedness = 'l';
+		}
+
 		if ('pLocation' in settings)
 		{
 			this.pLocation = [...settings.pLocation];
 		}
 		else
 		{
-			this.pLocation = [0,0,0];
+			this.pLocation = (this.handedness === 'l') ? [0,0,-1] : [0,-1,0];
 		}
 
 		if ('vSky' in settings)
@@ -25,7 +34,7 @@ class LsmView
 		}
 		else
 		{
-			this.vSky = [0,1,0];
+			this.vSky = (this.handedness === 'l') ? [0,1,0] : [0,0,1];
 		}
 
 		if ('sZoom' in settings)
@@ -37,66 +46,31 @@ class LsmView
 			this.sZoom = 1;
 		}
 
-		if ('vRight' in settings)
-		{
-			this.vRight = [...settings.vRight];
-			this.vRight = vnormalize(this.vRight);
-		}
-		else
-		{
-			this.vRight = [1,0,0];
-		}
-
-		if ('vUp' in settings)
-		{
-			this.vUp = [...settings.vUp];
-			this.vUp = vnormalize(this.vUp);
-		}
-		else
-		{
-			this.vUp = [0,1,0];
-		}
-
-		if ('vDirection' in settings)
-		{
-			this.vDirection = [...settings.vDirection];
-			this.sZoom = mag(this.vDirection);
-			this.vDirection = vnormalize(this.vDirection);
-		}
-		else
-		{
-			this.vDirection = [0,0,1];
-		}
-
-		this.hand = Math.sign(dot(this.vRight, vcross(this.vUp, this.vDirection)));
-
 		if ('pLookAt' in settings)
 		{
-			this.vDirection = vsub(settings.pLookAt, this.pLocation);
-			this.vDirection = vnormalize(this.vDirection);
-
-			if (this.hand > 0)
-			{
-				this.vRight = vcross(this.vSky, this.vDirection);
-			}
-			else
-			{
-				this.vRight = vcross(this.vDirection, this.vSky);
-			}
-
-			this.vRight = vnormalize(this.vRight);
-
-			if (this.hand > 0)
-			{
-				this.vUp = vcross(this.vDirection, this.vRight);
-			}
-			else
-			{
-				this.vUp = vcross(this.vRight, this.vDirection);
-			}
-
-			this.vUp = vnormalize(this.vUp);
+			this.pLookAt = settings.pLookAt;
 		}
+		else
+		{
+			this.pLookAt = [0,0,0];
+		}
+
+		this.vDirection = vsub(this.pLookAt, this.pLocation);
+		this.vDirection = vnormalize(this.vDirection);
+
+		if ('l' === this.handedness)
+		{
+			this.vRight = vcross(this.vSky, this.vDirection);
+			this.vUp = vcross(this.vDirection, this.vRight);
+		}
+		else
+		{
+			this.vRight = vcross(this.vDirection, this.vSky);
+			this.vUp = vcross(this.vRight, this.vDirection);
+		}
+
+		this.vRight = vnormalize(this.vRight);
+		this.vUp = vnormalize(this.vUp);
 
 		if ('sAngle' in settings)
 		{
