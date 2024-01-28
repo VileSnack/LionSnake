@@ -69,7 +69,7 @@ const programs = {
 	'verts' : {
 		vshader:
 			'attribute vec4 aPos; uniform mat4 uProj; uniform mat4 uTrans; uniform float uSize;'
-			+ ' void main() { gl_Position = uProj * uTrans * aPos.x; gl_PointSize = uSize; }',
+			+ ' void main() { gl_Position = uProj * uTrans * aPos; gl_PointSize = uSize; }',
 		fshader: 'precision mediump float; uniform vec4 uColor; void main() { gl_FragColor = uColor; }',
 		loc: null,		// replaced with reference to linked program
 		attributes: {

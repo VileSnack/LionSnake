@@ -26,4 +26,6 @@ function updateAddPopup()
 function AddObject()
 {
 	document.querySelector('#add-popup').style.display = 'none';
+
+	
 }

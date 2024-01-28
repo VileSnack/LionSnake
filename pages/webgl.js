@@ -1,27 +1,6 @@
-function animationLoop(timeStamp)
-{
-	const rect = document.body.getBoundingClientRect();
-
-	// set viewport to current canvas size
-	canvas.width = rect.width;
-	canvas.height = rect.height;
-
-	if (null === startTime) startTime = timeStamp;	// startTime declared in globals.js
-
-	const time = timeStamp - startTime;
-
-	renderScene(time);
-
-	window.requestAnimationFrame(animationLoop);
-}
-
 function renderScene(time)
 {
 //	console.log('> Entering renderScene().');
-
-	gl.clearColor(...background);
-	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-	gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
 	centerX = gl.canvas.width / 2;
 	centerY = gl.canvas.height / 2;
@@ -139,97 +118,6 @@ function renderScene(time)
 			});
 		}
 	}
-
-	renderCalls.forEach((call) => {
-		if (!call.enabled) return;
-		gl.useProgram(call.loc);
-
-		call.attributes.forEach((attrib) => {
-			gl.bindBuffer(gl.ARRAY_BUFFER, attrib.buffer);
-			gl.vertexAttribPointer(attrib.loc, attrib.len, attrib.type, false, attrib.stride, attrib.offset);
-			gl.enableVertexAttribArray(attrib.loc);
-		});
-
-		call.uniforms.forEach((uni) => {
-			uni.func(uni.loc, uni.data);
-		});
-
-		call.matrices.forEach((mat) => {
-			gl.uniformMatrix4fv(mat.loc, false, mat.data);
-		});
-
-		call.depth_test(gl.DEPTH_TEST);
-
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, call.ebuffer);
-		gl.drawElements(call.type, call.count, gl.UNSIGNED_SHORT, 0);
-	});
-
-
-//	console.log('< Exiting renderScene().');
-}
-
-function createCall(program_name, type, depth, enabled)
-{
-	const call = {};
-
-	const program = programs[program_name];
-
-	call.loc = program.loc;
-
-	call.attributes = [];
-
-	for (const key in program.attributes)
-	{
-		call.attributes.push({...program.attributes[key]});
-	}
-
-	call.uniforms = [];
-	call.matrices = [];
-
-	for (const key in program.uniforms)
-	{
-		call.uniforms.push({...program.uniforms[key]});
-	}
-
-	for (const key in program.matrices)
-	{
-		call.matrices.push({...program.matrices[key]});
-	}
-
-	switch (type.toLowerCase())
-	{
-		case 'points':
-			call.type = gl.POINTS;
-		break;
-		case 'line_strip':
-			call.type = gl.LINE_STRIP;
-		break;
-		case 'loop':
-			call.type = gl.LINE_LOOP;
-		break;
-		case 'lines':
-			call.type = gl.LINES;
-		break;
-		case 'triangle_strip':
-			call.type = gl.TRIANGLE_STRIP;
-		break;
-		case 'fan':
-			call.type = gl.TRIANGLE_FAN;
-		break;
-		case 'triangles':
-			call.type = gl.TRIANGLES;
-		break;
-		default:
-			throw 'Primitive "' + type + '" is not a recognized type.';
-	}
-
-	call.depth_test = depth ? gl.enable.bind(gl) : gl.disable.bind(gl);
-	call.ebuffer = null;
-	call.enabled = enabled;
-
-	renderCalls.push(call);
-
-	return call;
 }
 
 function getAttribute(call, name)
