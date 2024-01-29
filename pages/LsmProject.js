@@ -21,6 +21,8 @@ class LsmProject {
 		this.mouseMode = '';
 	}
 
+	addObject() { }
+
 	render()
 	{
 	}

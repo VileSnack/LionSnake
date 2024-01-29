@@ -6,8 +6,11 @@ class LsmModel extends LsmProject
 	{
 		super(params);
 		this.verts = [];
-		this.buffer = null;
-		this.count = 0;
+		this.edges = [];
+		this.vbuffer = null;
+		this.ebuffer = null;
+		this.vcount = 0;
+		this.ecount = 0;
 		this.view = new LsmView({ handedness: this.handedness, sAngle: 19 });
 		this.name = 'Model' + LsmModel.index++;
 		this.axesOn = true;
@@ -22,59 +25,124 @@ class LsmModel extends LsmProject
 		this.downY = 0;
 	}
 
+	addObject()
+	{
+		let count = this.verts.length;
+
+		switch (document.add_object.type.value)
+		{
+			case 'box':
+				this.verts.push(
+					{ x: -1, y: -1, z: -1 },
+					{ x:  1, y: -1, z: -1 },
+					{ x: -1, y:  1, z: -1 },
+					{ x:  1, y:  1, z: -1 },
+					{ x: -1, y: -1, z:  1 },
+					{ x:  1, y: -1, z:  1 },
+					{ x: -1, y:  1, z:  1 },
+					{ x:  1, y:  1, z:  1 }
+				);
+				this.edges.push(
+					{ s: this.verts[count + 0], e: this.verts[count + 1] },
+					{ s: this.verts[count + 2], e: this.verts[count + 3] },
+					{ s: this.verts[count + 4], e: this.verts[count + 5] },
+					{ s: this.verts[count + 6], e: this.verts[count + 7] },
+
+					{ s: this.verts[count + 0], e: this.verts[count + 2] },
+					{ s: this.verts[count + 1], e: this.verts[count + 3] },
+					{ s: this.verts[count + 4], e: this.verts[count + 6] },
+					{ s: this.verts[count + 5], e: this.verts[count + 7] },
+
+					{ s: this.verts[count + 0], e: this.verts[count + 4] },
+					{ s: this.verts[count + 1], e: this.verts[count + 5] },
+					{ s: this.verts[count + 2], e: this.verts[count + 6] },
+					{ s: this.verts[count + 3], e: this.verts[count + 7] }
+				);
+				this.obj_s = .5;
+				this.obj_t = [0,0,0];
+				this.rebuild();
+			break;
+		}
+	}
+
+	rebuild()
+	{
+		const vdata = [];
+		 let count = 0;
+
+		this.verts.forEach(vert => {
+			vert.i = count++;
+			vdata.push(vert.x, vert.y, vert.z);
+		});
+
+		this.vcount = vdata.length;
+
+		this.vbuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.vbuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vdata), gl.STATIC_DRAW);
+
+		const edata = [];
+
+		this.edges.forEach(edge => {
+			edata.push(edge.s.i, edge.e.i);
+		});
+
+		this.ecount = edata.length;
+
+		this.ebuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ebuffer);
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(edata), gl.STATIC_DRAW);
+	}
+
 	render()
 	{
 		if (this.axesOn)
 		{
 			renderAxes(this.obj_s, this.obj_r, this.obj_t, this.cam_proj);
 		}
-
-/*
-		//------------------------------------------------------------------------------------------
-		// Build the buffer if we haven't already done so.
-		//
-		if (!this.buffer)
+		
+		if (this.vbuffer)
 		{
-			const data = [];
-			this.count = 0;
-			this.buffer = gl.createBuffer();
-			gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
+			let program = programs['verts'];
+			let attrib = program.attributes['aPos'];
+			let color = program.uniforms['uColor'];
+			let size = program.uniforms['uSize'];
+			let proj = program.matrices['uProj'];
+			let trans = program.matrices['uTrans'];
 
-			verts.forEach(vert => {
-				data.push(vert.x, vert.y, vert.z);
-				this.count++;
-			});
+			gl.useProgram(program.loc);
+			gl.bindBuffer(gl.ARRAY_BUFFER, this.vbuffer);
+			gl.vertexAttribPointer(attrib.loc, attrib.len, attrib.type, false, attrib.stride, attrib.offset);
+			gl.enableVertexAttribArray(attrib.loc);
+			gl.enable(gl.DEPTH_TEST)
+			gl.uniformMatrix4fv(proj.loc, false, this.cam_proj);
 
-			gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+			const mat_t = [...identity];
+			multiply( [1,0,0,0, 0,1,0,0, 0,0,1,0, -this.obj_t[0], -this.obj_t[1], -this.obj_t[2], 1 ],
+				[
+					this.obj_r[0] * this.obj_s, this.obj_r[1] * this.obj_s, this.obj_r[2] * this.obj_s, 0,
+					this.obj_r[3] * this.obj_s, this.obj_r[4] * this.obj_s, this.obj_r[5] * this.obj_s, 0,
+					this.obj_r[6] * this.obj_s, this.obj_r[7] * this.obj_s, this.obj_r[8] * this.obj_s, 0,
+					0, 0, 0, 1
+				],
+				mat_t
+			);
+			gl.uniformMatrix4fv(trans.loc, false, mat_t);
+
+			//--------------------------------------------------------------------------------------
+			// Draw the vertices.
+			//
+			color.func(color.loc, [1,1,1,1]);
+			size.func(size.loc, [3]);
+			gl.drawArrays(gl.POINTS,0, this.vcount);
+
+			//--------------------------------------------------------------------------------------
+			// Draw the edges.
+			//
+			color.func(color.loc, [1,1,0,1]);
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ebuffer);
+			gl.drawElements(gl.LINES, this.ecount, gl.UNSIGNED_SHORT, 0);
 		}
-
-		let program = programs['verts'];
-		let attrib = program.attributes['aPos'];
-		let ebuffer = ebuffers['axis'];
-		let color = program.uniforms['uColor'];
-		let size = program.uniforms['uSize'];
-		let proj = program.matrices['uProj'];
-		let trans = program.matrices['uTrans'];
-
-		gl.useProgram(program.loc);
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
-		gl.vertexAttribPointer(attrib.loc, attrib.len, attrib.type, false, attrib.stride, attrib.offset);
-		gl.enableVertexAttribArray(attrib.loc);
-		gl.enable(gl.DEPTH_TEST)
-		gl.uniformMatrix4fv(proj.loc, false, c2f);
-
-		color.func(color.loc, [1,1,1,1]);
-		size.func(size.loc, [3]);
-		gl.uniformMatrix4fv(trans.loc, false,
-			[
-				m_rot[0] * zoom, m_rot[1] * zoom, m_rot[2] * zoom, 0,
-				m_rot[4] * zoom, m_rot[5] * zoom, m_rot[6] * zoom, 0,
-				m_rot[8] * zoom, m_rot[9] * zoom, m_rot[10] * zoom, 0,
-				p_eye[0], p_eye[1], p_eye[2], 1
-			]
-		);
-		gl.drawArrays(gl.POINTS,0, this.count);
-*/
 	}
 
 	setToolbar()

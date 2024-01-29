@@ -27,5 +27,5 @@ function AddObject()
 {
 	document.querySelector('#add-popup').style.display = 'none';
 
-	
+	thisProject.addObject();
 }

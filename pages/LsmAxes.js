@@ -45,7 +45,8 @@ function renderAxes(obj_s, m_rot, obj_t, cam_mat)
 	// draw the rules
 	program = programs['rules'];
 	attrib = program.attributes['aPos'];
-	ebuffer = ebuffers['rule'];
+	o_buffer = ebuffers['origin'];
+	r_buffer = ebuffers['rule'];
 	proj = program.matrices['uProj'];
 	trans = program.matrices['uTrans'];
 	color = program.uniforms['uColor'];
@@ -57,7 +58,6 @@ function renderAxes(obj_s, m_rot, obj_t, cam_mat)
 	gl.vertexAttribPointer(attrib.loc, attrib.len, attrib.type, false, attrib.stride, attrib.offset);
 	gl.enableVertexAttribArray(attrib.loc);
 	gl.enable(gl.DEPTH_TEST)
-	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ebuffer);
 
 	// draw the x rules
 	gl.uniformMatrix4fv(trans.loc, false, xtrans);
@@ -71,9 +71,20 @@ function renderAxes(obj_s, m_rot, obj_t, cam_mat)
 
 	for (let o = s; o <= e; o++)
 	{
-		uni_scale.func(uni_scale.loc, [(o % 10 === 0) ? .03 : (o % 5 === 0) ? .02 : .01]);
 		offset.func(offset.loc, [(o * rule - obj_t[0]) * obj_s]);
-		gl.drawElements(gl.LINES, 4, gl.UNSIGNED_SHORT, 0);
+
+		if (0 === o)
+		{
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, o_buffer);
+			uni_scale.func(uni_scale.loc, [ .02 ]);
+			gl.drawElements(gl.LINE_LOOP, 4, gl.UNSIGNED_SHORT, 0);
+		}
+		else
+		{
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, r_buffer);
+			uni_scale.func(uni_scale.loc, [(o % 10 === 0) ? .03 : (o % 5 === 0) ? .02 : .01]);
+			gl.drawElements(gl.LINES, 4, gl.UNSIGNED_SHORT, 0);
+		}
 	}
 
 	// draw the y rules
@@ -86,9 +97,20 @@ function renderAxes(obj_s, m_rot, obj_t, cam_mat)
 
 	for (let o = s; o <= e; o++)
 	{
-		uni_scale.func(uni_scale.loc, [(o % 10 === 0) ? .03 : (o % 5 === 0) ? .02 : .01]);
 		offset.func(offset.loc, [(o * rule - obj_t[1]) * obj_s]);
-		gl.drawElements(gl.LINES, 4, gl.UNSIGNED_SHORT, 0);
+
+		if (0 === o)
+		{
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, o_buffer);
+			uni_scale.func(uni_scale.loc, [.02]);
+			gl.drawElements(gl.LINE_LOOP, 4, gl.UNSIGNED_SHORT, 0);
+		}
+		else
+		{
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, r_buffer);
+			uni_scale.func(uni_scale.loc, [(o % 10 === 0) ? .03 : (o % 5 === 0) ? .02 : .01]);
+			gl.drawElements(gl.LINES, 4, gl.UNSIGNED_SHORT, 0);
+		}
 	}
 
 
@@ -102,8 +124,19 @@ function renderAxes(obj_s, m_rot, obj_t, cam_mat)
 
 	for (let o = s; o <= e; o++)
 	{
-		uni_scale.func(uni_scale.loc, [(o % 10 === 0) ? .03 : (o % 5 === 0) ? .02 : .01]);
 		offset.func(offset.loc, [(o * rule - obj_t[2]) * obj_s]);
-		gl.drawElements(gl.LINES, 4, gl.UNSIGNED_SHORT, 0);
+
+		if (0 === o)
+		{
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, o_buffer);
+			uni_scale.func(uni_scale.loc, [ .02 ]);
+			gl.drawElements(gl.LINE_LOOP, 4, gl.UNSIGNED_SHORT, 0);
+		}
+		else
+		{
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, r_buffer);
+			uni_scale.func(uni_scale.loc, [(o % 10 === 0) ? .03 : (o % 5 === 0) ? .02 : .01]);
+			gl.drawElements(gl.LINES, 4, gl.UNSIGNED_SHORT, 0);
+		}
 	}
 }

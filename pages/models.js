@@ -110,7 +110,8 @@ const buffers = {
 
 const ebuffers= {
 	'axis': { type: 'uint16', data: [0,1, 0,2, 0,3, 0,4, 0,5, 1,6, 1,7, 1,8, 1,9] },
-	'rule': { type: 'uint16', data: [10,11,12,13 ] }
+	'rule': { type: 'uint16', data: [10,11,12,13 ] },
+	'origin': { type: 'uint16', data: [10,12,11,13 ] }
 };
 
 /*
