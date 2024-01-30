@@ -16,11 +16,11 @@ For local development purposes, you can simply load the file `pages/home.html` i
 
 Here is the roadmap of the features I want to implement, and their status. As you can see, I haven't gotten very far with this project:
 
-|Feature|Status|Changes planned|
-|---|---|
-|Project types|Users can create model projects.|Scene projects|
-|Axes|Always on|Ability to turn off|
-|View|User can zoom, rotate, and translate the View, and switch between perspective and orthographic view|No changes planned|
-|Geometry|The user can add the edges and vertices for a cube.|Add faces to added Geometry|
-|||Add other shapes|
-|File operations|None|Add ability to load and save model and scene files to local library, export to as-yet-unidentified formats.|
+| Feature | Status | Changes planned |
+| --- | --- |
+| Project types | Users can create model projects.|Scene projects |
+| Axes | Always on | Ability to turn off |
+| View | User can zoom, rotate, and translate the View, and switch between perspective and orthographic view | No changes planned |
+| Geometry | The user can add the edges and vertices for a cube.|Add faces to added Geometry |
+| | | Add other shapes |
+| File operations | None | Add ability to load and save model and scene files to local library, export to as-yet-unidentified formats. |
