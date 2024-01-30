@@ -7,8 +7,11 @@ class LsmModel extends LsmProject
 		super(params);
 		this.verts = [];
 		this.edges = [];
-		this.vbuffer = null;
-		this.ebuffer = null;
+		this.faces = [];
+		this.vbuffer = null;	// The vertex buffer, for drawing vertices alone
+		this.ebuffer = null;	// The edge buffer, defines edge entities
+		this.fbuffer = null;	// The fully-shaded vertex buffer
+		this.tbuffer = null;	// The triangle buffer, defines triangle entities
 		this.vcount = 0;
 		this.ecount = 0;
 		this.view = new LsmView({ handedness: this.handedness, sAngle: 19 });
@@ -27,7 +30,8 @@ class LsmModel extends LsmProject
 
 	addObject()
 	{
-		let count = this.verts.length;
+		let vcount = this.verts.length;
+		let ecount = this.edges.length;
 
 		switch (document.add_object.type.value)
 		{
@@ -43,20 +47,22 @@ class LsmModel extends LsmProject
 					{ x:  1, y:  1, z:  1 }
 				);
 				this.edges.push(
-					{ s: this.verts[count + 0], e: this.verts[count + 1] },
-					{ s: this.verts[count + 2], e: this.verts[count + 3] },
-					{ s: this.verts[count + 4], e: this.verts[count + 5] },
-					{ s: this.verts[count + 6], e: this.verts[count + 7] },
+					{ s: this.verts[vcount + 0], e: this.verts[vcount + 1] },
+					{ s: this.verts[vcount + 2], e: this.verts[vcount + 3] },
+					{ s: this.verts[vcount + 4], e: this.verts[vcount + 5] },
+					{ s: this.verts[vcount + 6], e: this.verts[vcount + 7] },
+					{ s: this.verts[vcount + 0], e: this.verts[vcount + 2] },
+					{ s: this.verts[vcount + 1], e: this.verts[vcount + 3] },
+					{ s: this.verts[vcount + 4], e: this.verts[vcount + 6] },
+					{ s: this.verts[vcount + 5], e: this.verts[vcount + 7] },
+					{ s: this.verts[vcount + 0], e: this.verts[vcount + 4] },
+					{ s: this.verts[vcount + 1], e: this.verts[vcount + 5] },
+					{ s: this.verts[vcount + 2], e: this.verts[vcount + 6] },
+					{ s: this.verts[vcount + 3], e: this.verts[vcount + 7] }
+				);
 
-					{ s: this.verts[count + 0], e: this.verts[count + 2] },
-					{ s: this.verts[count + 1], e: this.verts[count + 3] },
-					{ s: this.verts[count + 4], e: this.verts[count + 6] },
-					{ s: this.verts[count + 5], e: this.verts[count + 7] },
-
-					{ s: this.verts[count + 0], e: this.verts[count + 4] },
-					{ s: this.verts[count + 1], e: this.verts[count + 5] },
-					{ s: this.verts[count + 2], e: this.verts[count + 6] },
-					{ s: this.verts[count + 3], e: this.verts[count + 7] }
+				this.faces.push(
+					{ e:[this.edges[ecount + 0], this.edges[ecount + 5],this.edges[ecount + 1],this.edges[ecount + 4]], c:[.75,.75,.75,1] }
 				);
 				this.obj_s = .5;
 				this.obj_t = [0,0,0];
@@ -68,7 +74,7 @@ class LsmModel extends LsmProject
 	rebuild()
 	{
 		const vdata = [];
-		 let count = 0;
+		let count = 0;
 
 		this.verts.forEach(vert => {
 			vert.i = count++;
@@ -89,9 +95,64 @@ class LsmModel extends LsmProject
 
 		this.ecount = edata.length;
 
+		const fdata = [];
+		const tdata = [];
+
 		this.ebuffer = gl.createBuffer();
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ebuffer);
 		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(edata), gl.STATIC_DRAW);
+
+		count = 0;
+
+		this.faces.forEach(face => {
+			const verts = [];
+
+			face.e.forEach((edge, index, e) => {
+				if (0 === index)
+				{
+					//------------------------------------------------------------------------------
+					// For the first edge, push the vertex that isn't in the following edge.
+					//
+					if ((edge.e === e[1].s) || (edge.e === e[1].e))
+					{
+						verts.push(edge.s);
+					}
+					else
+					{
+						verts.push(edge.e);
+					}
+				}
+				else
+				{
+					//------------------------------------------------------------------------------
+					// For the remaining edges, push the vertex that is in the preceding edge.
+					//
+					if ((edge.s === e[index - 1].s) || (edge.e === e[index - 1].e))
+					{
+						verts.push(edge.s);
+					}
+					else
+					{
+						verts.push(edge.e);
+					}
+				}
+			});
+
+			// calculate normal: nx, ny, nz
+
+			const start = count;
+
+			for (let i = 0; i < verts.length; i+=2)
+			{
+				fdata.push(vert[i].x, vert[i].y, vert[i].z, nx, ny, nz, ...face.c);
+				count++;
+			}
+
+			for (let i = 1; i + 1 < verts.length/2; i++)
+			{
+				tdata.push[start + 0, start + i, start + i + 1); 
+			}
+		});
 	}
 
 	render()
