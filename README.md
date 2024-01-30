@@ -19,10 +19,6 @@ Here is the roadmap of the features I want to implement. As you can see, I haven
 * Project types
 	* Projects can be created to use left-hand (Y is up, Z is forward) or right-hand (Z is up, Y is forward) orientation.
 	* Models can be created.
-		* The axes are displayed upon model project creation.
-		* The model view can be zoomed, rotated, and translated.
-		* TODO: Add control to toggle display of the axes.
-		* TODO: Label the axes.
 		* The user can add the vertices and edges of a cube.
 		* TODO: Add the faces, too.
 		* TODO: Support adding other object shapes (tori, cylinders, etc.)
@@ -35,4 +31,9 @@ Here is the roadmap of the features I want to implement. As you can see, I haven
 	* Save
 	* Load
 	* Export
-
+* User Experience:
+	* The axes are displayed upon model project creation.
+	* TODO: Add control to toggle display of the axes.
+	* TODO: Label the axes.
+	* The model view can be zoomed, rotated, and translated.
+	* The model view can be switched between orthographic and perspective projections.
