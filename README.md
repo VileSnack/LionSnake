@@ -14,14 +14,25 @@ The file `server.js` is a Node.js file for serving LionSnake on a server. All it
 
 For local development purposes, you can simply load the file `pages/home.html` into your browser and you should have all of the functionality that doesn't require file operations.
 
-Here is the roadmap of the features I want to implement, and their status. As you can see, I haven't gotten very far with this project:
+Here is the roadmap of the features I want to implement. As you can see, I haven't gotten very far with this project:
 
 * Project types
+	* Projects can be created to use left-hand (Y is up, Z is forward) or right-hand (Z is up, Y is forward) orientation.
 	* Models can be created.
 		* The axes are displayed upon model project creation.
+		* The model view can be zoomed, rotated, and translated.
 		* TODO: Add control to toggle display of the axes.
 		* TODO: Label the axes.
 		* The user can add the vertices and edges of a cube.
-		* TODO:
-		* TODO: Fully implement initial scaling of added geometry.
-  * TODO: Add scene project support.
+		* TODO: Add the faces, too.
+		* TODO: Support adding other object shapes (tori, cylinders, etc.)
+		* TODO: Support editing the added geometry.
+		* TODO: Support rigging for posable models.
+		* TODO: Support for texuring the geometry.
+		* TODO: Support for subdivision surfaces.
+	* TODO: Add scene project support.
+* TODO: File operations
+	* Save
+	* Load
+	* Export
+
