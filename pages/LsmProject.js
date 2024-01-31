@@ -40,6 +40,8 @@ class LsmProject {
 
 	recalcCamera() { }
 
+	recalcHoverPoints() { }
+
 	onContextMenu(e) { return false; }
 	onMouseClick(e) { return false; }
 	onMouseDown(e) { return false; }

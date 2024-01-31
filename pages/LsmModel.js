@@ -179,6 +179,21 @@ class LsmModel extends LsmProject
 		this.tbuffer = gl.createBuffer();
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.tbuffer);
 		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(tdata), gl.STATIC_DRAW);
+
+		if (document.toolbar?.mode.value === 'sel')
+		{
+			this.recalcHoverPoints();
+		}
+	}
+
+	recalcCamera()
+	{
+		this.cam_proj = this.view.recalc();
+	}
+
+	recalcHoverPoints()
+	{
+		console.log('Entering LsmModel.recalcHoverPoints().');
 	}
 
 	render()
@@ -276,7 +291,7 @@ class LsmModel extends LsmProject
 		+ '<a class="button blue hovertext" id="view-zneg" onclick="thisProject.zneg();">Z&ndash;</a><br/>'
 		+ '<a class="button blue hovertext" id="view-zpos" onclick="thisProject.zpos();">Z+</a><br/>'
 		+ '<label class="customcheck"><input type="checkbox" name="pers" onchange="thisProject.recalcCamera();"/><span class="hovertext" hover-text="Toggle perspective">P</span></label><br/>'
-		+ '<label class="customcheck"><input type="radio" name="mode" value="sel" checked /><span class="small hovertext" hover-text="Select">Sel</span></label><br/>'
+		+ '<label class="customcheck"><input type="radio" name="mode" value="sel" checked onclick="thisProject.recalcHoverPoints();"/><span class="small hovertext" hover-text="Select">Sel</span></label><br/>'
 		+ '<label class="customcheck"><input type="radio" name="mode" value="s" /><span class="hovertext" hover-text="Scale">S</span></label><br/>'
 		+ '<label class="customcheck"><input type="radio" name="mode" value="r" /><span class="hovertext" hover-text="Rotate">R</span></label><br/>'
 		+ '<label class="customcheck"><input type="radio" name="mode" value="t" /><span class="hovertext" hover-text="Translate">T</span></label><br/>'
@@ -298,11 +313,6 @@ class LsmModel extends LsmProject
 			document.querySelector('#view-zpos').setAttribute('hover-text', 'View from below');
 		}
 
-		this.cam_proj = this.view.recalc();
-	}
-
-	recalcCamera()
-	{
 		this.cam_proj = this.view.recalc();
 	}
 
