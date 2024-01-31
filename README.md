@@ -10,7 +10,7 @@ In the mean time WebGL has made fairly performant 3D graphics possible within th
 
 # Current state
 
-The file `server.js` is a Node.js file for serving LionSnake on a server. All it does now is serve the pages. I intend to add the ability to upload and download model files from this server, which will keep them in a specific folder to avoid shenanigans.
+The file `server.js` is a Node.js file hosting a LionSnake server. All it does now is serve the pages. I intend to add the ability to upload and download files, and to save user models and scenes on the server.
 
 For local development purposes, you can simply load the file `pages/home.html` into your browser and you should have all of the functionality that doesn't require file operations.
 
@@ -19,18 +19,18 @@ Here is the roadmap of the features I want to implement. As you can see, I haven
 * Project types
 	* Projects can be created to use left-hand (Y is up, Z is forward) or right-hand (Z is up, Y is forward) orientation.
 	* Models can be created.
-		* The user can add the vertices and edges of a cube.
-		* TODO: Add the faces, too.
-		* TODO: Support adding other object shapes (tori, cylinders, etc.)
+		* The user can add a cube.
 		* TODO: Support editing the added geometry.
+		* TODO: Support adding other object shapes (tori, cylinders, etc.)
 		* TODO: Support rigging for posable models.
-		* TODO: Support for texuring the geometry.
+		* TODO: Support for texturing the geometry.
 		* TODO: Support for subdivision surfaces.
 	* TODO: Add scene project support.
 * TODO: File operations
-	* Save
-	* Load
-	* Export
+	* Save - Projects will be saved to the library at regular intervals.
+	* Load - Projects can be loaded from the library.
+	* Export - The user can download the model or scene as a package for supported renderers.
+	* Import - The user can upload supported file types and add them to the library.
 * User Experience:
 	* The axes are displayed upon model project creation.
 	* TODO: Add control to toggle display of the axes.

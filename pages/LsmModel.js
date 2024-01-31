@@ -14,6 +14,7 @@ class LsmModel extends LsmProject
 		this.tbuffer = null;	// The triangle buffer, defines triangle entities
 		this.vcount = 0;
 		this.ecount = 0;
+		this.tcount = 0;
 		this.view = new LsmView({ handedness: this.handedness, sAngle: 19 });
 		this.name = 'Model' + LsmModel.index++;
 		this.axesOn = true;
@@ -62,7 +63,12 @@ class LsmModel extends LsmProject
 				);
 
 				this.faces.push(
-					{ e:[this.edges[ecount + 0], this.edges[ecount + 5],this.edges[ecount + 1],this.edges[ecount + 4]], c:[.75,.75,.75,1] }
+					{ e:[this.edges[ecount + 0], this.edges[ecount + 4],this.edges[ecount + 1],this.edges[ecount + 5]], c:[.75,.75,.75,1] },
+					{ e:[this.edges[ecount + 2], this.edges[ecount + 7],this.edges[ecount + 3],this.edges[ecount + 6]], c:[.75,.75,.75,1] },
+					{ e:[this.edges[ecount + 0], this.edges[ecount + 9],this.edges[ecount + 2],this.edges[ecount + 8]], c:[.75,.75,.75,1] },
+					{ e:[this.edges[ecount + 1], this.edges[ecount + 10],this.edges[ecount + 3],this.edges[ecount + 11]], c:[.75,.75,.75,1] },
+					{ e:[this.edges[ecount + 4], this.edges[ecount + 8],this.edges[ecount + 6],this.edges[ecount + 10]], c:[.75,.75,.75,1] },
+					{ e:[this.edges[ecount + 5], this.edges[ecount + 11],this.edges[ecount + 7],this.edges[ecount + 9]], c:[.75,.75,.75,1] }
 				);
 				this.obj_s = .5;
 				this.obj_t = [0,0,0];
@@ -95,12 +101,12 @@ class LsmModel extends LsmProject
 
 		this.ecount = edata.length;
 
-		const fdata = [];
-		const tdata = [];
-
 		this.ebuffer = gl.createBuffer();
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ebuffer);
 		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(edata), gl.STATIC_DRAW);
+
+		const fdata = [];
+		const tdata = [];
 
 		count = 0;
 
@@ -127,7 +133,7 @@ class LsmModel extends LsmProject
 					//------------------------------------------------------------------------------
 					// For the remaining edges, push the vertex that is in the preceding edge.
 					//
-					if ((edge.s === e[index - 1].s) || (edge.e === e[index - 1].e))
+					if ((edge.s === e[index - 1].s) || (edge.s === e[index - 1].e))
 					{
 						verts.push(edge.s);
 					}
@@ -138,21 +144,41 @@ class LsmModel extends LsmProject
 				}
 			});
 
-			// calculate normal: nx, ny, nz
+			let norm = [0,0,0];
+
+			for (let i = 0; i < verts.length; i++)
+			{
+				const j = (i + 1) % verts.length;
+
+				norm[0] += verts[i].y * verts[j].z - verts[i].z * verts[j].y;
+				norm[1] += verts[i].z * verts[j].x - verts[i].x * verts[j].z;
+				norm[2] += verts[i].x * verts[j].y - verts[i].y * verts[j].x;
+			}
+
+			norm = vnormalize(norm);
 
 			const start = count;
 
-			for (let i = 0; i < verts.length; i+=2)
-			{
-				fdata.push(vert[i].x, vert[i].y, vert[i].z, nx, ny, nz, ...face.c);
+			verts.forEach((vert) => {
+				fdata.push(vert.x, vert.y, vert.z, ...norm, ...face.c);
 				count++;
-			}
+			});
 
-			for (let i = 1; i + 1 < verts.length/2; i++)
+			for (let i = 1; i < verts.length - 1; i++)
 			{
-				tdata.push[start + 0, start + i, start + i + 1); 
+				tdata.push(start + 0, start + i, start + i + 1);
 			}
 		});
+
+		this.fbuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.fbuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(fdata), gl.STATIC_DRAW);
+
+		this.tcount = tdata.length;
+
+		this.tbuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.tbuffer);
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(tdata), gl.STATIC_DRAW);
 	}
 
 	render()
@@ -165,18 +191,18 @@ class LsmModel extends LsmProject
 		if (this.vbuffer)
 		{
 			let program = programs['verts'];
-			let attrib = program.attributes['aPos'];
-			let color = program.uniforms['uColor'];
-			let size = program.uniforms['uSize'];
-			let proj = program.matrices['uProj'];
-			let trans = program.matrices['uTrans'];
+			let aPos = program.attributes['aPos'];
+			let uColor = program.uniforms['uColor'];
+			let uSize = program.uniforms['uSize'];
+			let uProj = program.matrices['uProj'];
+			let uTrans = program.matrices['uTrans'];
 
 			gl.useProgram(program.loc);
 			gl.bindBuffer(gl.ARRAY_BUFFER, this.vbuffer);
-			gl.vertexAttribPointer(attrib.loc, attrib.len, attrib.type, false, attrib.stride, attrib.offset);
-			gl.enableVertexAttribArray(attrib.loc);
+			gl.vertexAttribPointer(aPos.loc, aPos.len, aPos.type, false, aPos.stride, aPos.offset);
+			gl.enableVertexAttribArray(aPos.loc);
 			gl.enable(gl.DEPTH_TEST)
-			gl.uniformMatrix4fv(proj.loc, false, this.cam_proj);
+			gl.uniformMatrix4fv(uProj.loc, false, this.cam_proj);
 
 			const mat_t = [...identity];
 			multiply( [1,0,0,0, 0,1,0,0, 0,0,1,0, -this.obj_t[0], -this.obj_t[1], -this.obj_t[2], 1 ],
@@ -188,21 +214,54 @@ class LsmModel extends LsmProject
 				],
 				mat_t
 			);
-			gl.uniformMatrix4fv(trans.loc, false, mat_t);
+			gl.uniformMatrix4fv(uTrans.loc, false, mat_t);
 
 			//--------------------------------------------------------------------------------------
 			// Draw the vertices.
 			//
-			color.func(color.loc, [1,1,1,1]);
-			size.func(size.loc, [3]);
+			uColor.func(uColor.loc, [1,1,1,1]);
+			uSize.func(uSize.loc, [3]);
 			gl.drawArrays(gl.POINTS,0, this.vcount);
 
 			//--------------------------------------------------------------------------------------
 			// Draw the edges.
 			//
-			color.func(color.loc, [1,1,0,1]);
+			uColor.func(uColor.loc, [1,1,0,1]);
 			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ebuffer);
 			gl.drawElements(gl.LINES, this.ecount, gl.UNSIGNED_SHORT, 0);
+
+			//--------------------------------------------------------------------------------------
+			// Draw the triangles.
+			//
+			program = programs['faces'];
+			aPos = program.attributes['aPos'];
+			let aNorm = program.attributes['aNorm'];
+			let aColor = program.attributes['aColor'];
+			uProj = program.matrices['uProj'];
+			uTrans = program.matrices['uTrans'];
+			let uRot = program.matrices['uRot'];
+
+			gl.useProgram(program.loc);
+			gl.bindBuffer(gl.ARRAY_BUFFER, this.fbuffer);
+
+			gl.vertexAttribPointer(aPos.loc, aPos.len, aPos.type, false, aPos.stride, aPos.offset);
+			gl.enableVertexAttribArray(aPos.loc);
+			gl.vertexAttribPointer(aNorm.loc, aNorm.len, aNorm.type, false, aNorm.stride, aNorm.offset);
+			gl.enableVertexAttribArray(aNorm.loc);
+			gl.vertexAttribPointer(aColor.loc, aColor.len, aColor.type, false, aColor.stride, aColor.offset);
+			gl.enableVertexAttribArray(aColor.loc);
+
+			gl.uniformMatrix4fv(uProj.loc, false, this.cam_proj);
+			gl.uniformMatrix4fv(uTrans.loc, false, mat_t);
+			gl.uniformMatrix4fv(uRot.loc, false, [
+				this.obj_r[0], this.obj_r[1], this.obj_r[2], 0,
+				this.obj_r[3], this.obj_r[4], this.obj_r[5], 0,
+				this.obj_r[6], this.obj_r[7], this.obj_r[8], 0,
+				0,0,0,1]
+			);
+
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.tbuffer);
+			gl.drawElements(gl.TRIANGLES, this.tcount, gl.UNSIGNED_SHORT, 0);
 		}
 	}
 

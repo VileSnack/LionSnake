@@ -11,7 +11,7 @@ function onLoad()
 
 	for (const key in programs)
 	{
-		console.log(`Processing program ${key}.`);
+//		console.log(`Processing program ${key}.`);
 
 		const program = programs[key];
 
@@ -19,9 +19,21 @@ function onLoad()
 		gl.shaderSource(vshader, program.vshader);
 		gl.compileShader(vshader);
 
+		if (!gl.getShaderParameter(vshader, gl.COMPILE_STATUS))
+		{
+			alert(`The error "${gl.getShaderInfoLog(vshader)}" happened when compiling the vertex shader for "${key}".`);
+			program.loc = null;
+		}
+
 		const fshader = gl.createShader(gl.FRAGMENT_SHADER);
 		gl.shaderSource(fshader, program.fshader);
 		gl.compileShader(fshader);
+
+		if (!gl.getShaderParameter(fshader, gl.COMPILE_STATUS))
+		{
+			alert(`The error "${gl.getShaderInfoLog(fshader)}" happened when compiling the fragment shader for "${key}".`);
+			program.loc = null;
+		}
 
 		program.loc = gl.createProgram();
 		gl.attachShader(program.loc, vshader);
@@ -40,7 +52,7 @@ function onLoad()
 
 		for (const key2 in program.attributes)
 		{
-			console.log(`Processing attribute ${key2}.`);
+//			console.log(`Processing attribute ${key2}.`);
 			const attrib = program.attributes[key2];
 
 			attrib.loc = gl.getAttribLocation(program.loc, key2);
@@ -58,7 +70,7 @@ function onLoad()
 		for (const key2 in program.uniforms)
 		{
 			const uni = program.uniforms[key2];
-			console.log(`Processing uniform ${key2}.`);
+//			console.log(`Processing uniform ${key2}.`);
 
 			uni.loc = gl.getUniformLocation(program.loc, key2);
 
@@ -81,7 +93,7 @@ function onLoad()
 
 	for (const key in buffers)
 	{
-		console.log(`Processing buffer ${key}.`);
+//		console.log(`Processing buffer ${key}.`);
 
 		const buffer = buffers[key];
 
@@ -113,7 +125,7 @@ function onLoad()
 
 	for (const key in ebuffers)
 	{
-		console.log(`Processing element buffer ${key}.`);
+//		console.log(`Processing element buffer ${key}.`);
 
 		const ebuffer = ebuffers[key];
 

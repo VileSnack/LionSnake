@@ -99,6 +99,62 @@ const programs = {
 				len: 1			// set to the number of elements in the uniform (1, 2, 3, 4)
 			}
 		}
+	},
+	'faces' : {
+		vshader:
+			'attribute vec4 aPos;'
+			+ ' attribute vec3 aNorm;'
+			+ ' attribute vec4 aColor;'
+			+ ' uniform mat4 uProj;'
+			+ ' uniform mat4 uTrans;'
+			+ ' uniform mat4 uRot;'
+			+ ' varying vec4 vColor;'
+			+ ' void main() {'
+			+ ' float light = max(dot(vec3(3.0/26.0, 4.0/26.0, -12.0/26.0), (uRot * vec4(aNorm,0.0)).xyz), 0.0) +.5;'
+			+ ' vColor = vec4(aColor.rgb * light, aColor.a);'
+			+ ' gl_Position = uProj * uTrans * aPos;'
+			+ ' }',
+		fshader: 'precision mediump float;'
+		+ ' varying vec4 vColor;'
+		+ ' void main() {'
+		+ ' gl_FragColor = vColor;'
+		+ ' }',
+		loc: null,		// replaced with reference to linked program
+		attributes: {
+			'aPos': {
+				loc: null,		// set to the attribute location (returned by gl call for program)
+				len: 3,			// set to the number of elements in the attribute
+				type: 'float',	// set to the webgl constant for the type
+				stride: 40,		// the number of bytes skipped between instances
+				offset: 0		// the number of bytes from the buffer start
+			},
+			'aNorm': {
+				loc: null,		// set to the attribute location (returned by gl call for program)
+				len: 3,			// set to the number of elements in the attribute
+				type: 'float',	// set to the webgl constant for the type
+				stride: 40,		// the number of bytes skipped between instances
+				offset: 12		// the number of bytes from the buffer start
+			},
+			'aColor': {
+				loc: null,		// set to the attribute location (returned by gl call for program)
+				len: 4,			// set to the number of elements in the attribute
+				type: 'float',	// set to the webgl constant for the type
+				stride: 40,		// the number of bytes skipped between instances
+				offset: 24		// the number of bytes from the buffer start
+			}
+		},
+		matrices: {
+			'uProj': {
+				loc: null,		// set to the attribute location (returned by gl call for program)
+			},
+			'uTrans': {
+				loc: null,		// set to the attribute location (returned by gl call for program)
+			},
+			'uRot': {
+				loc: null,		// set to the attribute location (returned by gl call for program)
+			}
+		},
+		uniforms: { }
 	}
 }
 
