@@ -74,15 +74,17 @@ class LsmModel extends LsmProject
 				this.obj_s = .5;
 				this.obj_t = [0,0,0];
 				this.rebuild();
+				this.recalcHoverPoints();
 			break;
 		}
 	}
 
 	dumpData()
 	{
-		console.log(this.verts);
-		console.log(this.edges);
-		console.log(this.faces);
+		console.log(`verts: ${this.verts}`);
+		console.log(`edges: ${this.edges}`);
+		console.log(`faces: ${this.faces}`);
+		console.log(`mouseMode: ${this.mouseMode}`);
 	}
 
 	rebuild()
@@ -218,6 +220,7 @@ class LsmModel extends LsmProject
 			{
 				vert.pX = Math.floor((loc[0] / loc[3] + 1) * .5 * gl.canvas.width +.5);
 				vert.pY = Math.floor((1 - loc[1] / loc[3]) * .5 * gl.canvas.height +.5);
+				vert.depth = loc[3];
 			}
 			else
 			{
@@ -265,16 +268,15 @@ class LsmModel extends LsmProject
 			//--------------------------------------------------------------------------------------
 			// Draw the highlighted vertices.
 			//
-			if (this.vhover.length > 0)
+			if (this.vhover)
 			{
 				const hbuffer = gl.createBuffer();
-				const indices = [];
-				this.vhover.forEach((vert) => { indices.push(vert.i); });
+				const indices = [this.vhover.i];
 				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, hbuffer);
 				gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(indices), gl.STATIC_DRAW);
 				uColor.func(uColor.loc, [1,1,0,1]);
 				uSize.func(uSize.loc, [7]);
-				gl.drawElements(gl.POINTS, indices.length, gl.UNSIGNED_SHORT, 0);
+				gl.drawElements(gl.POINTS, 1, gl.UNSIGNED_SHORT, 0);
 			}
 
 			//--------------------------------------------------------------------------------------
@@ -387,18 +389,20 @@ class LsmModel extends LsmProject
 				this.obj_t_save = [...this.obj_t];
 			break;
 			case 'd_p':
-				this.vhover.forEach((vert) => {
-					vert.save_x = vert.x;
-					vert.save_y = vert.y;
-					vert.save_z = vert.z;
-				});
-				// TODO: Calculate position based on mouse location and average depth of selected vertices
+				if (this.vhover)
+				{
+					this.vhover.save_x = this.vhover.x;
+					this.vhover.save_y = this.vhover.y;
+					this.vhover.save_z = this.vhover.z;
+					// TODO: Calculate position based on mouse location and average depth of selected vertices
+				}
 			break;
 		}
 	}
 
 	onMouseUp(e)
 	{
+		this.recalcHoverPoints();
 		this.mouseMode = document.toolbar.mode.value;
 	}
 
@@ -456,33 +460,40 @@ class LsmModel extends LsmProject
 				];
 			break;
 			case 'p':
-				this.vhover = [];
+				this.vhover = null;
 				this.verts.forEach((vert, index) => {
 					vert.i = index;
 
 					if ((mX > vert.pX - 3) && (mX < vert.pX + 3) && (mY > vert.pY - 3) && (mY < vert.pY + 3))
 					{
-						this.vhover.push(vert);
+						if ((null === this.vhover)
+						|| (this.vhover.depth > vert.depth))
+						{
+							this.vhover = vert;
+						}
 					}
 				});
 			break;
 
 			case 'd_p':
-				if (this.vhover.length > 0)
+				if (this.vhover)
 				{
 					// TODO: Calculate position based on mouse location and average depth of selected vertices,
 					// and use the difference between that and the value calculated at mousedown for the moving
 					const d = Math.min(gl.canvas.width, gl.canvas.height);
 					const dx = (mX - this.downX) / d * 2 / this.obj_s;
 					const dy = (this.downY - mY) / d * 2 / this.obj_s;
-					this.vhover.forEach((vert, index) => {
-						vert.x = vert.save_x + this.obj_r[0] * dx + this.obj_r[1] * dy,
-						vert.y = vert.save_y + this.obj_r[3] * dx + this.obj_r[4] * dy,
-						vert.z = vert.save_z + this.obj_r[6] * dx + this.obj_r[7] * dy
-					});
+					this.vhover.x = this.vhover.save_x + this.obj_r[0] * dx + this.obj_r[1] * dy,
+					this.vhover.y = this.vhover.save_y + this.obj_r[3] * dx + this.obj_r[4] * dy,
+					this.vhover.z = this.vhover.save_z + this.obj_r[6] * dx + this.obj_r[7] * dy
 
 					this.rebuild();
 				}
+				else
+				{
+					// TODO: rectangle selection of vertices
+				}
+				
 			break;
 		}
 	}
