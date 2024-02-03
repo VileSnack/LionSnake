@@ -28,6 +28,8 @@ class LsmModel extends LsmProject
 		this.downX = 0;
 		this.downY = 0;
 		this.vhover = [];
+		this.width = 1;
+		this.height = 1;
 	}
 
 	addObject()
@@ -232,6 +234,16 @@ class LsmModel extends LsmProject
 
 	render()
 	{
+		if (this.width !== gl.canvas.width || this.height !== gl.canvas.height)
+		{
+			this.cam_proj = this.view.recalc();
+			this.width = gl.canvas.width;
+			this.height = gl.canvas.height;
+		}
+
+//		document.querySelector('#w').innerHTML = gl.canvas.width;
+//		document.querySelector('#h').innerHTML = gl.canvas.height;
+
 		if (this.axesOn)
 		{
 			renderAxes(this.obj_s, this.obj_r, this.obj_t, this.cam_proj);
@@ -344,6 +356,8 @@ class LsmModel extends LsmProject
 		+ '<label class="customcheck"><input type="radio" name="mode" value="t" onclick="thisProject.mouseMode = \'t\';" /><span class="hovertext" hover-text="Translate">T</span></label><br/>'
 		+ '<a class="button small hovertext" id="edit-add" onclick="showPopup(\'add-popup\');" hover-text="Add gemoetry to model">Add</a><br/>'
 		+ '<a class="button small hovertext" id="dump-data" onclick="thisProject.dumpData();" hover-text="Dump mesh data">...</a><br/>'
+		+ '<span class="small" id="w"></span><br/>'
+		+ '<span class="small" id="h"></span><br/>'
 		+ '</form>';
 
 		if ('l' === this.handedness)

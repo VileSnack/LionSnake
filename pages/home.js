@@ -11,8 +11,6 @@ function onLoad()
 
 	for (const key in programs)
 	{
-//		console.log(`Processing program ${key}.`);
-
 		const program = programs[key];
 
 		const vshader = gl.createShader(gl.VERTEX_SHADER);
@@ -52,7 +50,6 @@ function onLoad()
 
 		for (const key2 in program.attributes)
 		{
-//			console.log(`Processing attribute ${key2}.`);
 			const attrib = program.attributes[key2];
 
 			attrib.loc = gl.getAttribLocation(program.loc, key2);
@@ -70,7 +67,6 @@ function onLoad()
 		for (const key2 in program.uniforms)
 		{
 			const uni = program.uniforms[key2];
-//			console.log(`Processing uniform ${key2}.`);
 
 			uni.loc = gl.getUniformLocation(program.loc, key2);
 
@@ -93,8 +89,6 @@ function onLoad()
 
 	for (const key in buffers)
 	{
-//		console.log(`Processing buffer ${key}.`);
-
 		const buffer = buffers[key];
 
 		const loc = gl.createBuffer();
@@ -125,8 +119,6 @@ function onLoad()
 
 	for (const key in ebuffers)
 	{
-//		console.log(`Processing element buffer ${key}.`);
-
 		const ebuffer = ebuffers[key];
 
 		const loc = gl.createBuffer();

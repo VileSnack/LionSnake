@@ -61,12 +61,12 @@ canvas
 	cursor: default;
 }
 
-a.small {
+.small {
 	padding: 3px 1px;
 	font-size: 12px;
 }
 
-a.small:active {
+.small:active {
 	padding: 4px 0 2px 2px;
 }
 
