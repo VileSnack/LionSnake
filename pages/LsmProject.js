@@ -23,6 +23,8 @@ class LsmProject {
 
 	addObject() { }
 
+	dumpData() { }
+
 	render()
 	{
 	}

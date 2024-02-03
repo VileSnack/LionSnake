@@ -78,6 +78,13 @@ class LsmModel extends LsmProject
 		}
 	}
 
+	dumpData()
+	{
+		console.log(this.verts);
+		console.log(this.edges);
+		console.log(this.faces);
+	}
+
 	rebuild()
 	{
 		const vdata = [];
@@ -261,11 +268,13 @@ class LsmModel extends LsmProject
 			if (this.vhover.length > 0)
 			{
 				const hbuffer = gl.createBuffer();
+				const indices = [];
+				this.vhover.forEach((vert) => { indices.push(vert.i); });
 				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, hbuffer);
-				gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(this.vhover), gl.STATIC_DRAW);
+				gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(indices), gl.STATIC_DRAW);
 				uColor.func(uColor.loc, [1,1,0,1]);
 				uSize.func(uSize.loc, [7]);
-				gl.drawElements(gl.POINTS, this.vhover.length, gl.UNSIGNED_SHORT, 0);
+				gl.drawElements(gl.POINTS, indices.length, gl.UNSIGNED_SHORT, 0);
 			}
 
 			//--------------------------------------------------------------------------------------
@@ -333,6 +342,7 @@ class LsmModel extends LsmProject
 		+ '<label class="customcheck"><input type="radio" name="mode" value="r" onclick="thisProject.mouseMode = \'r\';" /><span class="hovertext" hover-text="Rotate">R</span></label><br/>'
 		+ '<label class="customcheck"><input type="radio" name="mode" value="t" onclick="thisProject.mouseMode = \'t\';" /><span class="hovertext" hover-text="Translate">T</span></label><br/>'
 		+ '<a class="button small hovertext" id="edit-add" onclick="showPopup(\'add-popup\');" hover-text="Add gemoetry to model">Add</a><br/>'
+		+ '<a class="button small hovertext" id="dump-data" onclick="thisProject.dumpData();" hover-text="Dump mesh data">...</a><br/>'
 		+ '</form>';
 
 		if ('l' === this.handedness)
@@ -375,6 +385,14 @@ class LsmModel extends LsmProject
 			break;
 			case 'd_t':
 				this.obj_t_save = [...this.obj_t];
+			break;
+			case 'd_p':
+				this.vhover.forEach((vert) => {
+					vert.save_x = vert.x;
+					vert.save_y = vert.y;
+					vert.save_z = vert.z;
+				});
+				// TODO: Calculate position based on mouse location and average depth of selected vertices
 			break;
 		}
 	}
@@ -429,26 +447,43 @@ class LsmModel extends LsmProject
 			break;
 			case 'd_t':
 				const d = Math.min(gl.canvas.width, gl.canvas.height);
-				const dx = (mX - this.downX) / d;
-				const dy = (mY - this.downY) / d;
+				const dx = (mX - this.downX) / d * 2 / this.obj_s;
+				const dy = (mY - this.downY) / d * 2 / this.obj_s;
 				this.obj_t = [
-					this.obj_t_save[0] - (this.obj_r[0] * dx - this.obj_r[1] * dy) * 2 / this.obj_s,
-					this.obj_t_save[1] - (this.obj_r[3] * dx - this.obj_r[4] * dy) * 2 / this.obj_s,
-					this.obj_t_save[2] - (this.obj_r[6] * dx - this.obj_r[7] * dy) * 2 / this.obj_s
+					this.obj_t_save[0] - this.obj_r[0] * dx - this.obj_r[1] * dy,
+					this.obj_t_save[1] - this.obj_r[3] * dx - this.obj_r[4] * dy,
+					this.obj_t_save[2] - this.obj_r[6] * dx - this.obj_r[7] * dy
 				];
 			break;
 			case 'p':
-			{
 				this.vhover = [];
 				this.verts.forEach((vert, index) => {
 					vert.i = index;
 
 					if ((mX > vert.pX - 3) && (mX < vert.pX + 3) && (mY > vert.pY - 3) && (mY < vert.pY + 3))
 					{
-						this.vhover.push(index);
+						this.vhover.push(vert);
 					}
 				});
-			}
+			break;
+
+			case 'd_p':
+				if (this.vhover.length > 0)
+				{
+					// TODO: Calculate position based on mouse location and average depth of selected vertices,
+					// and use the difference between that and the value calculated at mousedown for the moving
+					const d = Math.min(gl.canvas.width, gl.canvas.height);
+					const dx = (mX - this.downX) / d * 2 / this.obj_s;
+					const dy = (this.downY - mY) / d * 2 / this.obj_s;
+					this.vhover.forEach((vert, index) => {
+						vert.x = vert.save_x + this.obj_r[0] * dx + this.obj_r[1] * dy,
+						vert.y = vert.save_y + this.obj_r[3] * dx + this.obj_r[4] * dy,
+						vert.z = vert.save_z + this.obj_r[6] * dx + this.obj_r[7] * dy
+					});
+
+					this.rebuild();
+				}
+			break;
 		}
 	}
 
