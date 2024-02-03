@@ -284,12 +284,11 @@ class LsmModel extends LsmProject
 			//
 			uColor.func(uColor.loc, [1,1,1,1]);
 			uSize.func(uSize.loc, [3]);
-			gl.drawArrays(gl.POINTS,0, this.vcount);
+			gl.drawArrays(gl.POINTS,0, this.verts.length);
 
 			//--------------------------------------------------------------------------------------
 			// Draw the edges.
 			//
-			uColor.func(uColor.loc, [1,1,0,1]);
 			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ebuffer);
 			gl.drawElements(gl.LINES, this.ecount, gl.UNSIGNED_SHORT, 0);
 
@@ -371,9 +370,8 @@ class LsmModel extends LsmProject
 
 	onMouseDown(e)
 	{
-		const rect = document.querySelector('#toolbar').getBoundingClientRect();
-		this.downX = e.clientX - rect.width;
-		this.downY = e.clientY;
+		this.downX = e.offsetX;
+		this.downY = e.offsetY;
 
 		this.mouseMode = 'd_' + document.toolbar.mode.value;
 
@@ -404,16 +402,13 @@ class LsmModel extends LsmProject
 	{
 		this.recalcHoverPoints();
 		this.mouseMode = document.toolbar.mode.value;
+		this.vhover = null;
 	}
 
 	onMouseMove(e)
 	{
-		const rect = document.querySelector('#toolbar').getBoundingClientRect();
-		const mX = e.clientX - rect.width;
-		const mY = e.clientY;
-		const aX = this.downY - mY;
-		const aY = this.downX - mX;
-		const mag = Math.sqrt(aX * aX + aY * aY);
+		const mX = e.offsetX;
+		const mY = e.offsetY;
 
 		switch (this.mouseMode)
 		{
@@ -435,6 +430,9 @@ class LsmModel extends LsmProject
 				}
 				else
 				{
+					const aX = this.downY - mY;
+					const aY = this.downX - mX;
+					const mag = Math.sqrt(aX * aX + aY * aY);
 					const u = aX / mag;
 					const v = aY / mag;
 					const c = Math.cos(mag * .01);
@@ -452,7 +450,7 @@ class LsmModel extends LsmProject
 			case 'd_t':
 				const d = Math.min(gl.canvas.width, gl.canvas.height);
 				const dx = (mX - this.downX) / d * 2 / this.obj_s;
-				const dy = (mY - this.downY) / d * 2 / this.obj_s;
+				const dy = (this.downY - mY) / d * 2 / this.obj_s;
 				this.obj_t = [
 					this.obj_t_save[0] - this.obj_r[0] * dx - this.obj_r[1] * dy,
 					this.obj_t_save[1] - this.obj_r[3] * dx - this.obj_r[4] * dy,
@@ -508,6 +506,8 @@ class LsmModel extends LsmProject
 		{
 			this.obj_r = [0,0,-1, 1,0,0, 0,1,0];
 		}
+
+		this.recalcHoverPoints();
 	}
 
 	xpos()
@@ -520,6 +520,8 @@ class LsmModel extends LsmProject
 		{
 			this.obj_r = [0,0,1, -1,0,0, 0,1,0];
 		}
+
+		this.recalcHoverPoints();
 	}
 
 	yneg()
@@ -532,6 +534,8 @@ class LsmModel extends LsmProject
 		{
 			this.obj_r = [-1,0,0, 0,0,-1, 0,1,0];
 		}
+
+		this.recalcHoverPoints();
 	}
 
 	ypos()
@@ -544,6 +548,8 @@ class LsmModel extends LsmProject
 		{
 			this.obj_r = [1,0,0, 0,0,1, 0,1,0];
 		}
+
+		this.recalcHoverPoints();
 	}
 
 	zneg()
@@ -556,6 +562,8 @@ class LsmModel extends LsmProject
 		{
 			this.obj_r = [1,0,0, 0,1,0, 0,0,-1];
 		}
+
+		this.recalcHoverPoints();
 	}
 
 	zpos()
@@ -568,6 +576,8 @@ class LsmModel extends LsmProject
 		{
 			this.obj_r = [-1,0,0, 0,1,0, 0,0,1];
 		}
+
+		this.recalcHoverPoints();
 	}
 }
 
