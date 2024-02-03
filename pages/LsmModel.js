@@ -27,6 +27,7 @@ class LsmModel extends LsmProject
 		this.obj_t_save = [...this.obj_t];
 		this.downX = 0;
 		this.downY = 0;
+		this.vhover = [];
 	}
 
 	addObject()
@@ -193,7 +194,30 @@ class LsmModel extends LsmProject
 
 	recalcHoverPoints()
 	{
-		console.log('Entering LsmModel.recalcHoverPoints().');
+		this.verts.forEach((vert) => {
+			let loc = [(vert.x - this.obj_t[0]) * this.obj_s, (vert.y - this.obj_t[1]) * this.obj_s, (vert.z - this.obj_t[2]) * this.obj_s];
+			loc = [
+				loc[0] * this.obj_r[0] + loc[1] * this.obj_r[3] + loc[2] * this.obj_r[6],
+				loc[0] * this.obj_r[1] + loc[1] * this.obj_r[4] + loc[2] * this.obj_r[7],
+				loc[0] * this.obj_r[2] + loc[1] * this.obj_r[5] + loc[2] * this.obj_r[8]
+			];
+			loc = [
+				loc[0] * this.cam_proj[0] + loc[1] * this.cam_proj[4] + loc[2] * this.cam_proj[8] + this.cam_proj[12],
+				loc[0] * this.cam_proj[1] + loc[1] * this.cam_proj[5] + loc[2] * this.cam_proj[9] + this.cam_proj[13],
+				loc[0] * this.cam_proj[2] + loc[1] * this.cam_proj[6] + loc[2] * this.cam_proj[10] + this.cam_proj[14],
+				loc[0] * this.cam_proj[3] + loc[1] * this.cam_proj[7] + loc[2] * this.cam_proj[11] + this.cam_proj[15]
+			];
+			if (loc[3] !== 0)
+			{
+				vert.pX = Math.floor((loc[0] / loc[3] + 1) * .5 * gl.canvas.width +.5);
+				vert.pY = Math.floor((1 - loc[1] / loc[3]) * .5 * gl.canvas.height +.5);
+			}
+			else
+			{
+				vert.pX = -1e6;
+				vert.pY = -1e6;
+			}
+		});
 	}
 
 	render()
@@ -202,7 +226,7 @@ class LsmModel extends LsmProject
 		{
 			renderAxes(this.obj_s, this.obj_r, this.obj_t, this.cam_proj);
 		}
-		
+
 		if (this.vbuffer)
 		{
 			let program = programs['verts'];
@@ -230,6 +254,19 @@ class LsmModel extends LsmProject
 				mat_t
 			);
 			gl.uniformMatrix4fv(uTrans.loc, false, mat_t);
+
+			//--------------------------------------------------------------------------------------
+			// Draw the highlighted vertices.
+			//
+			if (this.vhover.length > 0)
+			{
+				const hbuffer = gl.createBuffer();
+				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, hbuffer);
+				gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(this.vhover), gl.STATIC_DRAW);
+				uColor.func(uColor.loc, [1,1,0,1]);
+				uSize.func(uSize.loc, [7]);
+				gl.drawElements(gl.POINTS, this.vhover.length, gl.UNSIGNED_SHORT, 0);
+			}
 
 			//--------------------------------------------------------------------------------------
 			// Draw the vertices.
@@ -291,10 +328,10 @@ class LsmModel extends LsmProject
 		+ '<a class="button blue hovertext" id="view-zneg" onclick="thisProject.zneg();">Z&ndash;</a><br/>'
 		+ '<a class="button blue hovertext" id="view-zpos" onclick="thisProject.zpos();">Z+</a><br/>'
 		+ '<label class="customcheck"><input type="checkbox" name="pers" onchange="thisProject.recalcCamera();"/><span class="hovertext" hover-text="Toggle perspective">P</span></label><br/>'
-		+ '<label class="customcheck"><input type="radio" name="mode" value="sel" checked onclick="thisProject.recalcHoverPoints();"/><span class="small hovertext" hover-text="Select">Sel</span></label><br/>'
-		+ '<label class="customcheck"><input type="radio" name="mode" value="s" /><span class="hovertext" hover-text="Scale">S</span></label><br/>'
-		+ '<label class="customcheck"><input type="radio" name="mode" value="r" /><span class="hovertext" hover-text="Rotate">R</span></label><br/>'
-		+ '<label class="customcheck"><input type="radio" name="mode" value="t" /><span class="hovertext" hover-text="Translate">T</span></label><br/>'
+		+ '<label class="customcheck"><input type="radio" name="mode" value="p" checked onclick="thisProject.recalcHoverPoints(); thisProject.mouseMode = \'p\';"/><span class="small hovertext" hover-text="Select">Sel</span></label><br/>'
+		+ '<label class="customcheck"><input type="radio" name="mode" value="s" onclick="thisProject.mouseMode = \'s\';" /><span class="hovertext" hover-text="Scale">S</span></label><br/>'
+		+ '<label class="customcheck"><input type="radio" name="mode" value="r" onclick="thisProject.mouseMode = \'r\';" /><span class="hovertext" hover-text="Rotate">R</span></label><br/>'
+		+ '<label class="customcheck"><input type="radio" name="mode" value="t" onclick="thisProject.mouseMode = \'t\';" /><span class="hovertext" hover-text="Translate">T</span></label><br/>'
 		+ '<a class="button small hovertext" id="edit-add" onclick="showPopup(\'add-popup\');" hover-text="Add gemoetry to model">Add</a><br/>'
 		+ '</form>';
 
@@ -314,6 +351,7 @@ class LsmModel extends LsmProject
 		}
 
 		this.cam_proj = this.view.recalc();
+		this.mouseMode = document.toolbar.mode.value;
 	}
 
 	onContextMenu(event) {}
@@ -321,47 +359,54 @@ class LsmModel extends LsmProject
 
 	onMouseDown(e)
 	{
-		this.downX = e.clientX;
+		const rect = document.querySelector('#toolbar').getBoundingClientRect();
+		this.downX = e.clientX - rect.width;
 		this.downY = e.clientY;
 
-		this.mouseMode = document.toolbar.mode.value;
+		this.mouseMode = 'd_' + document.toolbar.mode.value;
 
 		switch (this.mouseMode)
 		{
-			case 's':
+			case 'd_s':
 				this.obj_s_save = this.obj_s;
 			break;
-			case 'r':
+			case 'd_r':
 				this.obj_r_save = [...this.obj_r];
 			break;
-			case 't':
+			case 'd_t':
 				this.obj_t_save = [...this.obj_t];
 			break;
 		}
 	}
 
-	// onMouseUp(e) { } // Commented out, base class behavior is correct
+	onMouseUp(e)
+	{
+		this.mouseMode = document.toolbar.mode.value;
+	}
 
 	onMouseMove(e)
 	{
-		const aX = this.downY - e.clientY;
-		const aY = this.downX - e.clientX;
+		const rect = document.querySelector('#toolbar').getBoundingClientRect();
+		const mX = e.clientX - rect.width;
+		const mY = e.clientY;
+		const aX = this.downY - mY;
+		const aY = this.downX - mX;
 		const mag = Math.sqrt(aX * aX + aY * aY);
 
 		switch (this.mouseMode)
 		{
-			case 's':
+			case 'd_s':
 				const centerX = gl.canvas.width / 2;
 				const centerY = gl.canvas.height / 2;
 				const dx1 = this.downX - centerX;
 				const dy1 = this.downY - centerY;
-				const dx2 = e.clientX - centerX;
-				const dy2 = e.clientY - centerY;
+				const dx2 = mX - centerX;
+				const dy2 = mY - centerY;
 				const mag1 = dx1 * dx1 + dy1 * dy1;
 				const mag2 = dx2 * dx2 + dy2 * dy2;
 				if (mag2 !== 0) this.obj_s = this.obj_s_save * Math.sqrt(mag2 / mag1);
 			break;
-			case 'r':
+			case 'd_r':
 				if (0 === mag)
 				{
 					this.obj_r = [...this.obj_r_save];
@@ -382,16 +427,28 @@ class LsmModel extends LsmProject
 					);
 				}
 			break;
-			case 't':
+			case 'd_t':
 				const d = Math.min(gl.canvas.width, gl.canvas.height);
-				const dx = (e.clientX - this.downX) / d;
-				const dy = (e.clientY - this.downY) / d;
+				const dx = (mX - this.downX) / d;
+				const dy = (mY - this.downY) / d;
 				this.obj_t = [
 					this.obj_t_save[0] - (this.obj_r[0] * dx - this.obj_r[1] * dy) * 2 / this.obj_s,
 					this.obj_t_save[1] - (this.obj_r[3] * dx - this.obj_r[4] * dy) * 2 / this.obj_s,
 					this.obj_t_save[2] - (this.obj_r[6] * dx - this.obj_r[7] * dy) * 2 / this.obj_s
 				];
 			break;
+			case 'p':
+			{
+				this.vhover = [];
+				this.verts.forEach((vert, index) => {
+					vert.i = index;
+
+					if ((mX > vert.pX - 3) && (mX < vert.pX + 3) && (mY > vert.pY - 3) && (mY < vert.pY + 3))
+					{
+						this.vhover.push(index);
+					}
+				});
+			}
 		}
 	}
 
