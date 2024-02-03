@@ -435,7 +435,7 @@ class LsmModel extends LsmProject
 				const dy2 = mY - centerY;
 				const mag1 = dx1 * dx1 + dy1 * dy1;
 				const mag2 = dx2 * dx2 + dy2 * dy2;
-				if (mag2 !== 0) this.obj_s = this.obj_s_save * Math.sqrt(mag2 / mag1);
+				if (mag2 !== 0) this.obj_s = Math.max(1e-6, Math.min(1e3,this.obj_s_save * Math.sqrt(mag2 / mag1)));
 			break;
 			case 'd_r':
 				if (0 === mag)
