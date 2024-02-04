@@ -40,15 +40,19 @@ class LsmModel extends LsmProject
 		switch (document.add_object.type.value)
 		{
 			case 'box':
+			{
+				const scaleX = +document.add_object.scale_x.value;
+				const scaleY = +document.add_object.scale_y.value;
+				const scaleZ = +document.add_object.scale_z.value;
 				this.verts.push(
-					{ x: -1, y: -1, z: -1 },
-					{ x:  1, y: -1, z: -1 },
-					{ x: -1, y:  1, z: -1 },
-					{ x:  1, y:  1, z: -1 },
-					{ x: -1, y: -1, z:  1 },
-					{ x:  1, y: -1, z:  1 },
-					{ x: -1, y:  1, z:  1 },
-					{ x:  1, y:  1, z:  1 }
+					{ x: -scaleX, y: -scaleY, z: -scaleZ },
+					{ x:  scaleX, y: -scaleY, z: -scaleZ },
+					{ x: -scaleX, y:  scaleY, z: -scaleZ },
+					{ x:  scaleX, y:  scaleY, z: -scaleZ },
+					{ x: -scaleX, y: -scaleY, z:  scaleZ },
+					{ x:  scaleX, y: -scaleY, z:  scaleZ },
+					{ x: -scaleX, y:  scaleY, z:  scaleZ },
+					{ x:  scaleX, y:  scaleY, z:  scaleZ }
 				);
 				this.edges.push(
 					{ s: this.verts[vcount + 0], e: this.verts[vcount + 1] },
@@ -73,10 +77,11 @@ class LsmModel extends LsmProject
 					{ e:[this.edges[ecount + 4], this.edges[ecount + 8],this.edges[ecount + 6],this.edges[ecount + 10]], c:[.75,.75,.75,1] },
 					{ e:[this.edges[ecount + 5], this.edges[ecount + 11],this.edges[ecount + 7],this.edges[ecount + 9]], c:[.75,.75,.75,1] }
 				);
-				this.obj_s = .5;
+				this.obj_s = .5 / Math.max(scaleX, scaleY, scaleZ);
 				this.obj_t = [0,0,0];
 				this.rebuild();
 				this.recalcHoverPoints();
+			}
 			break;
 		}
 	}
