@@ -130,16 +130,15 @@ function onLoad()
 		ebuffers[key] = loc;
 	}
 
+	const rect = document.body.getBoundingClientRect();
+	canvas.width = rect.width;
+	canvas.height = rect.height;
+
 	window.requestAnimationFrame(animationLoop);
 }
 
 function animationLoop(timeStamp)
 {
-	const rect = document.body.getBoundingClientRect();
-
-	canvas.width = rect.width;
-	canvas.height = rect.height;
-
 	if (null === startTime) startTime = timeStamp;	// startTime declared in globals.js
 
 	const time = timeStamp - startTime;
@@ -148,7 +147,7 @@ function animationLoop(timeStamp)
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-	if (thisProject) thisProject.render();
+	thisProject?.render();
 
 	window.requestAnimationFrame(animationLoop);
 }

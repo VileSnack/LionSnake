@@ -359,6 +359,7 @@ class LsmModel extends LsmProject
 		+ '<label class="customcheck"><input type="radio" name="mode" value="s" onclick="thisProject.mouseMode = \'s\';" /><span class="hovertext" hover-text="Scale">S</span></label><br/>'
 		+ '<label class="customcheck"><input type="radio" name="mode" value="r" onclick="thisProject.mouseMode = \'r\';" /><span class="hovertext" hover-text="Rotate">R</span></label><br/>'
 		+ '<label class="customcheck"><input type="radio" name="mode" value="t" onclick="thisProject.mouseMode = \'t\';" /><span class="hovertext" hover-text="Translate">T</span></label><br/>'
+		+ '<a class="button hovertext" id="view-origin" onclick="thisProject.toOrigin();" hover-text="Snap to origin">O</a><br/>'
 		+ '<a class="button small hovertext" id="edit-add" onclick="showPopup(\'add-popup\');" hover-text="Add gemoetry to model">Add</a><br/>'
 		+ '<a class="button small hovertext" id="dump-data" onclick="thisProject.dumpData();" hover-text="Dump mesh data">...</a><br/>'
 		+ '<span class="small" id="w"></span><br/>'
@@ -443,15 +444,16 @@ class LsmModel extends LsmProject
 				if (mag2 !== 0) this.obj_s = Math.max(1e-6, Math.min(1e3,this.obj_s_save * Math.sqrt(mag2 / mag1)));
 			break;
 			case 'd_r':
+				const aX = this.downY - mY;
+				const aY = this.downX - mX;
+				const mag = Math.sqrt(aX * aX + aY * aY);
+
 				if (0 === mag)
 				{
 					this.obj_r = [...this.obj_r_save];
 				}
 				else
 				{
-					const aX = this.downY - mY;
-					const aY = this.downX - mX;
-					const mag = Math.sqrt(aX * aX + aY * aY);
 					const u = aX / mag;
 					const v = aY / mag;
 					const c = Math.cos(mag * .01);
@@ -514,6 +516,8 @@ class LsmModel extends LsmProject
 			break;
 		}
 	}
+
+	toOrigin() { this.obj_t = [0,0,0]; }
 
 	xneg()
 	{

@@ -25,6 +25,14 @@ class LsmProject {
 
 	dumpData() { }
 
+	onResize()
+	{
+		const rect = document.body.getBoundingClientRect();
+		canvas.width = rect.width;
+		canvas.height = rect.height;
+		this.recalcCamera();
+	}
+
 	render()
 	{
 	}
@@ -49,6 +57,8 @@ class LsmProject {
 	onMouseDown(e) { return false; }
 	onMouseUp(e) { this.mouseMode = ''; }
 	onMouseMove(e) { return false; }
+
+	toOrigin() { }
 
 	xneg() { }
 	xpos() { }
@@ -76,6 +86,7 @@ function createProject()
 			thisProject = new LsmModel({ handedness: document.create_project.handedness.value });
 			projects.push(thisProject);
 			activateProject(thisProject);
+			thisProject.onResize();
 		break;
 	}
 }
