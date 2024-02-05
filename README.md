@@ -6,7 +6,7 @@ Back before some of you were born, I came across the Persistence of Vision Ray T
 
 Having no small skill with software, I decided to create my own modeler, originally using the Windows GDI before learning OpenGL, to generate models for POV-Ray. I named it LionSnake (having been born under the sign of Leo in the Year of the Snake). It was *usable*, but not that great, and I stopped development in the middle oughts.
 
-In the mean time WebGL has made fairly performant 3D graphics possible within the web browser environment, and between that, and the lack of native OpenGL support in Windows, and the completely execrable state of Direct3D tutorials on the web, I decided to port LionSnake into WebGL.
+~~In the mean time WebGL has made fairly performant 3D graphics possible within the web browser environment, and between that, and the lack of native OpenGL support in Windows, and the completely execrable state of Direct3D tutorials on the web, I decided to port LionSnake into WebGL.~~ Except that WebGPU has been released and promises to be even better, so I'll convert the existing code to WebGPU.
 
 # Current state
 
@@ -20,6 +20,7 @@ Here is the roadmap of the features I want to implement. As you can see, I haven
 	* Projects can be created to use left-hand (Y is up, Z is forward) or right-hand (Z is up, Y is forward) orientation.
 	* Models can be created.
 		* The user can add a cube.
+		* The user can drag the individual vertices of the added cube.
 		* TODO: Support editing the added geometry.
 		* TODO: Support adding other object shapes (tori, cylinders, etc.)
 		* TODO: Support rigging for posable models.
