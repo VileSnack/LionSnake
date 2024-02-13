@@ -4,10 +4,18 @@ let canvas  = null;
 let context = null;
 let presentationFormat = null;
 
+const uniRecord = [1,1,1,1,0,0,0,0];
+const clearColor = { r: 0.5, g: 0.5, b: 0.5, a: 1.0 };
+
+let uniBuffer = null;
+let bindGroup = null;
+let renderPipeline = null;
+
 async function OnLoad()
 {
 	await initWebGPU();
 	initOtherStuff();
+	window.requestAnimationFrame(render);
 }
 
 async function initWebGPU()
@@ -100,14 +108,33 @@ function initOtherStuff()
 		layout: "auto"
 	};
 
-	const renderPipeline = device.createRenderPipeline(pipelineDescriptor);
+	renderPipeline = device.createRenderPipeline(pipelineDescriptor);
+
+	uniBuffer = device.createBuffer({
+		size: uniRecord.length * 4,
+		usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+	});
+
+	bindGroup = device.createBindGroup({
+		layout: renderPipeline.getBindGroupLayout(0),
+		entries: [
+			{ binding: 0, resource: { buffer: uniBuffer }},
+		],
+	});
+}
+
+function render(time)
+{
+	uniRecord[0] = Math.random()*.1 + .95;
+	uniRecord[1] = Math.random()*.1 + .95;
+	uniRecord[4] = time / 1000;
+
+	device.queue.writeBuffer(uniBuffer, 0, new Float32Array(uniRecord));
 
 	//----------------------------------------------------------------------------------------------
 	// Create a render pass.
 	//
 	const commandEncoder = device.createCommandEncoder();
-
-	const clearColor = { r: 0.5, g: 0.5, b: 0.5, a: 1.0 };
 
 	const renderPassDescriptor = {
 		colorAttachments: [
@@ -124,6 +151,7 @@ function initOtherStuff()
 
 	passEncoder.setPipeline(renderPipeline);
 	passEncoder.setVertexBuffer(0, vertex_sets['rgb_triangle'].buffer);
+	passEncoder.setBindGroup(0, bindGroup);
 	passEncoder.draw(3);
 
 	passEncoder.end();
@@ -134,4 +162,6 @@ function initOtherStuff()
 	// Send the render pass to the render queue.
 	//
 	device.queue.submit([renderPass]);
+
+	window.requestAnimationFrame(render);
 }
