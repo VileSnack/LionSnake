@@ -8,6 +8,7 @@ const shaders = {
 			};
 
 			@group(0) @binding(0) var<uniform> uniRecord: UniRecord;
+			@group(0) @binding(1) var<uniform> uniProj: mat4x4f;
 
 			struct VertexOut {
 				@builtin(position) position : vec4f,
@@ -22,7 +23,7 @@ const shaders = {
 				var c: f32 = cos(uniRecord.angle);
 				var s: f32 = sin(uniRecord.angle);
 				var rot: mat4x4f = mat4x4f(c,s,0,0, -s,c,0,0, 0,0,1,0, 0,0,0,1);
-				output.position = rot * position;
+				output.position = uniProj * rot * (uniRecord.scale * position);
 				output.color = color;
 				return output;
 			}

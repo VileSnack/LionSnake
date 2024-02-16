@@ -6,12 +6,14 @@ let presentationFormat = null;
 
 const uniRecord = [1,1,1,1,0,0,0,0];
 const clearColor = { r: 0.5, g: 0.5, b: 0.5, a: 1.0 };
+let uniProj = [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1];
 
 let uniBuffer = null;
+let projBuffer = null;
 let bindGroup = null;
 let renderPipeline = null;
 
-async function OnLoad()
+async function onLoad()
 {
 	await initWebGPU();
 	initOtherStuff();
@@ -34,9 +36,8 @@ async function initWebGPU()
 	device = await adapter?.requestDevice();
 
 	canvas = document.querySelector('#webgpu');
-	canvas.width = canvas.getBoundingClientRect().width;
-	canvas.height = canvas.getBoundingClientRect().height;
 	context = canvas.getContext('webgpu');
+	onResize();
 
 	if (!context)
 	{
@@ -115,21 +116,53 @@ function initOtherStuff()
 		usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
 	});
 
+	projBuffer = device.createBuffer({
+		size: uniProj.length * 4,
+		usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+	});
+
 	bindGroup = device.createBindGroup({
 		layout: renderPipeline.getBindGroupLayout(0),
 		entries: [
 			{ binding: 0, resource: { buffer: uniBuffer }},
+			{ binding: 1, resource: { buffer: projBuffer }}
 		],
 	});
 }
 
+function onResize()
+{
+	if (canvas)
+	{
+		canvas.width = canvas.getBoundingClientRect().width;
+		canvas.height = canvas.getBoundingClientRect().height;
+	}
+}
+
 function render(time)
 {
-	uniRecord[0] = Math.random()*.1 + .95;
-	uniRecord[1] = Math.random()*.1 + .95;
+	uniRecord[0] = uniRecord[1] = 1;
 	uniRecord[4] = time / 1000;
 
+	const d = Math.min(canvas.width, canvas.height);
+
+	const pers = 1/6;
+
+	const far = 1000;
+	const near = (0 === pers) ? -far : -Math.min(far, 1 / pers - .01);
+
+	const c10 = (pers * far + 1) / (far - near);
+	const c14 = (-pers * far * near - near) / (far - near);
+
+	uniProj = [
+		d / canvas.width,	0,					0,		0,
+		0,					d / canvas.height,	0,		0,
+		0,					0,					c10,	pers,
+		0,					0,					c14,	1
+	];
+
 	device.queue.writeBuffer(uniBuffer, 0, new Float32Array(uniRecord));
+	device.queue.writeBuffer(projBuffer, 0, new Float32Array(uniProj));
 
 	//----------------------------------------------------------------------------------------------
 	// Create a render pass.
