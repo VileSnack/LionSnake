@@ -1,153 +1,133 @@
-function onLoad()
+async function onLoad()
 {
 	canvas = document.querySelector('#glcanvas');
-	gl = canvas.getContext('webgl');
 
-	if (null === gl)
+	await initWebGPU();
+
+	for(const key in shaders)
 	{
-		alert('Your browser does not support WebGL. LionSnake cannot run in this browser.');
-		return;
+		const code = shaders[key];
+		modules[key] = device.createShaderModule({ code });
+		console.log(`Shader "${key}" built.`);
 	}
 
-	for (const key in programs)
+	for (const key in vertex_sets)
 	{
-		const program = programs[key];
+		const vset = vertex_sets[key];
 
-		const vshader = gl.createShader(gl.VERTEX_SHADER);
-		gl.shaderSource(vshader, program.vshader);
-		gl.compileShader(vshader);
+		vset.data = new Float32Array(vset.data);
 
-		if (!gl.getShaderParameter(vshader, gl.COMPILE_STATUS))
-		{
-			alert(`The error "${gl.getShaderInfoLog(vshader)}" happened when compiling the vertex shader for "${key}".`);
-			program.loc = null;
-		}
+		vset.buffer = device.createBuffer({
+			size: vset.data.byteLength,
+			usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST
+		});
 
-		const fshader = gl.createShader(gl.FRAGMENT_SHADER);
-		gl.shaderSource(fshader, program.fshader);
-		gl.compileShader(fshader);
+		device.queue.writeBuffer(vset.buffer, 0, vset.data);
 
-		if (!gl.getShaderParameter(fshader, gl.COMPILE_STATUS))
-		{
-			alert(`The error "${gl.getShaderInfoLog(fshader)}" happened when compiling the fragment shader for "${key}".`);
-			program.loc = null;
-		}
-
-		program.loc = gl.createProgram();
-		gl.attachShader(program.loc, vshader);
-		gl.attachShader(program.loc, fshader);
-		gl.linkProgram(program.loc);
-
-		if (gl.getProgramParameter(program.loc, gl.LINK_STATUS))
-		{
-			programList[program.loc] = program;
-		}
-		else
-		{
-			alert(`The error "${gl.getProgramInfoLog(program.loc)}" happened when linking a shader program.`);
-			program.loc = null;
-		}
-
-		for (const key2 in program.attributes)
-		{
-			const attrib = program.attributes[key2];
-
-			attrib.loc = gl.getAttribLocation(program.loc, key2);
-
-			switch (attrib.type)
-			{
-				case 'float':	attrib.type = gl.FLOAT;				break;
-				case 'int8':	attrib.type = gl.BYTE;				break;
-				case 'int16':	attrib.type = gl.SHORT;				break;
-				case 'uint8':	attrib.type = gl.UNSIGNED_BYTE;		break;
-				case 'uint16':	attrib.type = gl.UNSIGNED_SHORT;	break;
-			}
-		}
-
-		for (const key2 in program.uniforms)
-		{
-			const uni = program.uniforms[key2];
-
-			uni.loc = gl.getUniformLocation(program.loc, key2);
-
-			switch (uni.len)
-			{
-				case 1: uni.func = gl.uniform1fv.bind(gl); break;
-				case 2: uni.func = gl.uniform2fv.bind(gl); break;
-				case 3: uni.func = gl.uniform3fv.bind(gl); break;
-				case 4: uni.func = gl.uniform4fv.bind(gl); break;
-			}
-		}
-
-		for (const key2 in program.matrices)
-		{
-			const matrix = program.matrices[key2];
-
-			matrix.loc = gl.getUniformLocation(program.loc, key2);
-		}
+//		delete vset.data;
+		console.log(`Vertex set "${key}" built.`);
 	}
 
-	for (const key in buffers)
+	for (const key in index_sets)
 	{
-		const buffer = buffers[key];
+		const iset = index_sets[key];
 
-		const loc = gl.createBuffer();
+		iset.count = iset.data.length;
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, loc);
+		iset.data = new Uint16Array(iset.data);
 
-		switch (buffer.type)
-		{
-			case 'float':
-				gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(buffer.data), gl.STATIC_DRAW);
-			break;
-			case 'int16':
-				gl.bufferData(gl.ARRAY_BUFFER, new Int16Array(buffer.data), gl.STATIC_DRAW);
-			break;
-			case 'uint16':
-				gl.bufferData(gl.ARRAY_BUFFER, new Uint16Array(buffer.data), gl.STATIC_DRAW);
-			break;
-			case 'int8':
-				gl.bufferData(gl.ARRAY_BUFFER, new Int8Array(buffer.data), gl.STATIC_DRAW);
-			break;
-			case 'uint8':
-				gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(buffer.data), gl.STATIC_DRAW);
-			break;
-		}
+		iset.buffer = device.createBuffer({
+			size: iset.data.byteLength,
+			usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST
+		});
 
-		buffers[key] = loc;
+		device.queue.writeBuffer(iset.buffer, 0, iset.data);
+
+//		delete iset.data;
+		console.log(`Index set "${key}" built.`);
 	}
 
-	for (const key in ebuffers)
-	{
-		const ebuffer = ebuffers[key];
+	//----------------------------------------------------------------------------------------------
+	// Set up the camera-to-frame buffer.
+	//
+	c2fBuffer = device.createBuffer({
+		size: 64,
+		usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+	});
 
-		const loc = gl.createBuffer();
+	device.queue.writeBuffer(c2fBuffer, 0, new Float32Array(identity));
 
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, loc);
-
-		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(ebuffer.data), gl.STATIC_DRAW);
-
-		ebuffers[key] = loc;
-	}
-
-	const rect = document.body.getBoundingClientRect();
-	canvas.width = rect.width;
-	canvas.height = rect.height;
-
+	//----------------------------------------------------------------------------------------------
+	// Kick off the animation loop.
+	//
 	window.requestAnimationFrame(animationLoop);
+}
+
+async function initWebGPU()
+{
+	if (!navigator.gpu) {
+		throw Error("WebGPU not supported.");
+	}
+
+	adapter = await navigator.gpu?.requestAdapter();
+
+	if (!adapter)
+	{
+		throw Error("Couldn't request WebGPU adapter.");
+	}
+
+	device = await adapter?.requestDevice();
+
+	context = canvas.getContext('webgpu');
+
+	if (!context)
+	{
+		throw Error('Could not get WebGPU context for canvas.');
+	}
+
+	presentationFormat = navigator.gpu.getPreferredCanvasFormat();
+
+	context.configure({
+		device: device,
+		format: presentationFormat,
+		alphaMode: "premultiplied"
+	});
 }
 
 function animationLoop(timeStamp)
 {
-	if (null === startTime) startTime = timeStamp;	// startTime declared in globals.js
+	if (null === startTime) startTime = timeStamp;
 
 	const time = timeStamp - startTime;
 
-	gl.clearColor(...background);
-	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-	gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+	const rect = canvas.getBoundingClientRect();
 
-	thisProject?.render();
+	canvas.width = rect.width;
+	canvas.height = rect.height;
+
+	//----------------------------------------------------------------------------------------------
+	// Create a render pass.
+	//
+	const commandEncoder = device.createCommandEncoder();
+
+	const renderPassDescriptor = {
+		colorAttachments: [
+			{
+				clearValue: backgroundColor,
+				loadOp: "clear",
+				storeOp: "store",
+				view: context.getCurrentTexture().createView(),
+			},
+		],
+	};
+
+	const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+
+	thisProject?.render(passEncoder, time);
+
+	passEncoder.end();
+
+	device.queue.submit([commandEncoder.finish()]);
 
 	window.requestAnimationFrame(animationLoop);
 }

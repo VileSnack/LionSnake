@@ -16,9 +16,8 @@ class LsmModel extends LsmProject
 		this.ecount = 0;
 		this.tcount = 0;
 		this.view = new LsmView({ handedness: this.handedness, sAngle: 19 });
+		this.view.recalc();
 		this.name = 'Model' + LsmModel.index++;
-		this.axesOn = true;
-		this.cam_proj = [...identity];
 		this.obj_s = this.view.sZoom;
 		this.obj_s_save = this.obj_s;
 		this.obj_r = [...this.view.vRight, ...this.view.vUp, ...this.view.vDirection];
@@ -30,6 +29,7 @@ class LsmModel extends LsmProject
 		this.vhover = [];
 		this.width = 1;
 		this.height = 1;
+		this.axes = new LsmAxes();
 	}
 
 	addObject()
@@ -205,7 +205,7 @@ class LsmModel extends LsmProject
 
 	recalcCamera()
 	{
-		this.cam_proj = this.view.recalc();
+		this.view.recalc();
 	}
 
 	recalcHoverPoints()
@@ -225,8 +225,8 @@ class LsmModel extends LsmProject
 			];
 			if (loc[3] !== 0)
 			{
-				vert.pX = Math.floor((loc[0] / loc[3] + 1) * .5 * gl.canvas.width +.5);
-				vert.pY = Math.floor((1 - loc[1] / loc[3]) * .5 * gl.canvas.height +.5);
+				vert.pX = Math.floor((loc[0] / loc[3] + 1) * .5 * canvas.width +.5);
+				vert.pY = Math.floor((1 - loc[1] / loc[3]) * .5 * canvas.height +.5);
 				vert.depth = loc[3];
 			}
 			else
@@ -237,23 +237,18 @@ class LsmModel extends LsmProject
 		});
 	}
 
-	render()
+	render(encoder, time)
 	{
-		if (this.width !== gl.canvas.width || this.height !== gl.canvas.height)
+		if (this.width !== canvas.width || this.height !== canvas.height)
 		{
-			this.cam_proj = this.view.recalc();
-			this.width = gl.canvas.width;
-			this.height = gl.canvas.height;
+			this.view.recalc();
+			this.width = canvas.width;
+			this.height = canvas.height;
 		}
 
-//		document.querySelector('#w').innerHTML = gl.canvas.width;
-//		document.querySelector('#h').innerHTML = gl.canvas.height;
+		this.axes.render(encoder);
 
-		if (this.axesOn)
-		{
-			renderAxes(this.obj_s, this.obj_r, this.obj_t, this.cam_proj);
-		}
-
+/*
 		if (this.vbuffer)
 		{
 			let program = programs['verts'];
@@ -342,6 +337,7 @@ class LsmModel extends LsmProject
 			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.tbuffer);
 			gl.drawElements(gl.TRIANGLES, this.tcount, gl.UNSIGNED_SHORT, 0);
 		}
+*/
 	}
 
 	setToolbar()
@@ -433,8 +429,8 @@ class LsmModel extends LsmProject
 		switch (this.mouseMode)
 		{
 			case 'd_s':
-				const centerX = gl.canvas.width / 2;
-				const centerY = gl.canvas.height / 2;
+				const centerX = canvas.width / 2;
+				const centerY = canvas.height / 2;
 				const dx1 = this.downX - centerX;
 				const dy1 = this.downY - centerY;
 				const dx2 = mX - centerX;
@@ -467,9 +463,11 @@ class LsmModel extends LsmProject
 						]
 					);
 				}
+				
+				this.axes.setRotate(this.obj_r);
 			break;
 			case 'd_t':
-				const d = Math.min(gl.canvas.width, gl.canvas.height);
+				const d = Math.min(canvas.width, canvas.height);
 				const dx = (mX - this.downX) / d * 2 / this.obj_s;
 				const dy = (this.downY - mY) / d * 2 / this.obj_s;
 				this.obj_t = [
@@ -499,7 +497,7 @@ class LsmModel extends LsmProject
 				{
 					// TODO: Calculate position based on mouse location and average depth of selected vertices,
 					// and use the difference between that and the value calculated at mousedown for the moving
-					const d = Math.min(gl.canvas.width, gl.canvas.height);
+					const d = Math.min(canvas.width, canvas.height);
 					const dx = (mX - this.downX) / d * 2 / this.obj_s;
 					const dy = (this.downY - mY) / d * 2 / this.obj_s;
 					this.vhover.x = this.vhover.save_x + this.obj_r[0] * dx + this.obj_r[1] * dy,

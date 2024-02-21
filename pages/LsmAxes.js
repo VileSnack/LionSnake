@@ -2,141 +2,203 @@ const colorX = new Float32Array([1,0,0,1]);
 const colorY = new Float32Array([0,1,0,1]);
 const colorZ = new Float32Array([0,0,1,1]);
 
-// Replace with the function that will render the specific object
-function renderAxes(obj_s, m_rot, obj_t, cam_mat)
+class LsmAxes
 {
-	// build some flipping transforms
-	// Todo: Add the scaling and translate if they become necessary
-	const xtrans = new Float32Array([ m_rot[0],m_rot[1],m_rot[2],0, m_rot[3],m_rot[4],m_rot[5],0, m_rot[6],m_rot[7],m_rot[8],0, 0,0,0,1 ]);
-	const ytrans = new Float32Array([ m_rot[3],m_rot[4],m_rot[5],0, m_rot[6],m_rot[7],m_rot[8],0, m_rot[0],m_rot[1],m_rot[2],0, 0,0,0,1 ]);
-	const ztrans = new Float32Array([ m_rot[6],m_rot[7],m_rot[8],0, m_rot[0],m_rot[1],m_rot[2],0, m_rot[3],m_rot[4],m_rot[5],0, 0,0,0,1 ]);
+	static vertexBuffers = [
+		{
+			attributes: [
+				{
+					shaderLocation: 0,
+					offset: 0,
+					format: "float32x4",
+				},
+				{
+					shaderLocation: 1,
+					offset: 16,
+					format: "float32x4",
+				}
+			],
+			arrayStride: 32,
+			stepMode: "vertex"
+		}
+	];
 
-	// first the axes
-	let program = programs['solid'];
-	let attrib = program.attributes['aPos'];
-	let ebuffer = ebuffers['axis'];
-	let color = program.uniforms['uColor'];
-	let proj = program.matrices['uProj'];
-	let trans = program.matrices['uTrans'];
-
-	gl.useProgram(program.loc);
-	gl.bindBuffer(gl.ARRAY_BUFFER, buffers['axis']);
-	gl.vertexAttribPointer(attrib.loc, attrib.len, attrib.type, false, attrib.stride, attrib.offset);
-	gl.enableVertexAttribArray(attrib.loc);
-	gl.enable(gl.DEPTH_TEST)
-	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ebuffers['axis']);
-	gl.uniformMatrix4fv(proj.loc, false, cam_mat);
-
-	// draw the x axis
-	color.func(color.loc, colorX);
-	gl.uniformMatrix4fv(trans.loc, false, xtrans);
-	gl.drawElements(gl.LINES, 18, gl.UNSIGNED_SHORT, 0);
-
-	// draw the y axis
-	color.func(color.loc, colorY);
-	gl.uniformMatrix4fv(trans.loc, false, ytrans);
-	gl.drawElements(gl.LINES, 18, gl.UNSIGNED_SHORT, 0);
-
-	// draw the z axis
-	color.func(color.loc, colorZ);
-	gl.uniformMatrix4fv(trans.loc, false, ztrans);
-	gl.drawElements(gl.LINES, 18, gl.UNSIGNED_SHORT, 0);
-
-	// draw the rules
-	program = programs['rules'];
-	attrib = program.attributes['aPos'];
-	o_buffer = ebuffers['origin'];
-	r_buffer = ebuffers['rule'];
-	proj = program.matrices['uProj'];
-	trans = program.matrices['uTrans'];
-	color = program.uniforms['uColor'];
-	let offset = program.uniforms['uOffset'];
-	let uni_scale = program.uniforms['uScale'];
-
-	gl.useProgram(program.loc);
-	gl.bindBuffer(gl.ARRAY_BUFFER, buffers['axis']);
-	gl.vertexAttribPointer(attrib.loc, attrib.len, attrib.type, false, attrib.stride, attrib.offset);
-	gl.enableVertexAttribArray(attrib.loc);
-	gl.enable(gl.DEPTH_TEST)
-
-	// draw the x rules
-	gl.uniformMatrix4fv(trans.loc, false, xtrans);
-	gl.uniformMatrix4fv(proj.loc, false, cam_mat);
-	color.func(color.loc, colorX);
-
-	let rule = Math.exp(Math.floor(Math.log10(1.0 / obj_s) - 1) * log10);
-
-	let s = Math.ceil((obj_t[0] - .9 / obj_s) / rule);
-	let e = Math.floor((obj_t[0] + .9 / obj_s) / rule);
-
-	for (let o = s; o <= e; o++)
+	constructor()
 	{
-		offset.func(offset.loc, [(o * rule - obj_t[0]) * obj_s]);
+		this.scale = 1;
+		this.rotate = [1,0,0, 0,1,0, 0,0,1];
+		this.translate = [0,0,0];
+		this.show = true;
 
-		if (0 === o)
-		{
-			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, o_buffer);
-			uni_scale.func(uni_scale.loc, [ .02 ]);
-			gl.drawElements(gl.LINE_LOOP, 4, gl.UNSIGNED_SHORT, 0);
-		}
-		else
-		{
-			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, r_buffer);
-			uni_scale.func(uni_scale.loc, [(o % 10 === 0) ? .03 : (o % 5 === 0) ? .02 : .01]);
-			gl.drawElements(gl.LINES, 4, gl.UNSIGNED_SHORT, 0);
-		}
+		this.transBuffer = device.createBuffer({
+			size: 64,
+			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+		});
+
+		device.queue.writeBuffer(this.transBuffer, 0, new Float32Array(identity));
+
+		//----------------------------------------------------------------------------------------------
+		// Create the render pipeline for this render pass.
+		//
+		const pipelineDescriptor = {
+			vertex: {
+				module: modules['mono'],
+				entryPoint: 'vertex_main',
+				buffers: LsmAxes.vertexBuffers,
+			},
+			fragment: {
+				module: modules['mono'],
+				entryPoint: 'fragment_main',
+				targets: [
+					{
+						format: navigator.gpu.getPreferredCanvasFormat(),
+					},
+				],
+			},
+			primitive: {
+				topology: 'line-list'
+			},
+			layout: 'auto'
+		};
+
+		this.pipeline = device.createRenderPipeline(pipelineDescriptor);
+
+		this.bindGroup = device.createBindGroup({
+			layout: this.pipeline.getBindGroupLayout(0),
+			entries: [
+				{ binding: 0, resource: { buffer: this.transBuffer }},
+				{ binding: 1, resource: { buffer: c2fBuffer }}
+			],
+		});
 	}
 
-	// draw the y rules
-	gl.uniformMatrix4fv(trans.loc, false, ytrans);
-	gl.uniformMatrix4fv(proj.loc, false, cam_mat);
-	color.func(color.loc, colorY);
+	setScale(newScale) { this.scale = newScale; }
 
-	s = Math.ceil((obj_t[1] - .9 / obj_s) / rule);
-	e = Math.floor((obj_t[1] + .9 / obj_s) / rule);
-
-	for (let o = s; o <= e; o++)
+	setRotate(newRotate)
 	{
-		offset.func(offset.loc, [(o * rule - obj_t[1]) * obj_s]);
-
-		if (0 === o)
-		{
-			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, o_buffer);
-			uni_scale.func(uni_scale.loc, [.02]);
-			gl.drawElements(gl.LINE_LOOP, 4, gl.UNSIGNED_SHORT, 0);
-		}
-		else
-		{
-			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, r_buffer);
-			uni_scale.func(uni_scale.loc, [(o % 10 === 0) ? .03 : (o % 5 === 0) ? .02 : .01]);
-			gl.drawElements(gl.LINES, 4, gl.UNSIGNED_SHORT, 0);
-		}
+		this.rotate = [...newRotate];
+		device.queue.writeBuffer(this.transBuffer, 0, new Float32Array([
+			newRotate[0],	newRotate[1],	newRotate[2],	0,
+			newRotate[3],	newRotate[4],	newRotate[5],	0,
+			newRotate[6],	newRotate[7],	newRotate[8],	0,
+			0,				0,				0,				1
+		]));
 	}
 
+	setTranslate(newTranslate) { this.translate = [...newTranslate]; }
 
-	// draw the x rules
-	gl.uniformMatrix4fv(trans.loc, false, ztrans);
-	gl.uniformMatrix4fv(proj.loc, false, cam_mat);
-	color.func(color.loc, colorZ);
+	setShow(newShow) { this.show = newShow; }
 
-	s = Math.ceil((obj_t[2] - .9 / obj_s) / rule);
-	e = Math.floor((obj_t[2] + .9 / obj_s) / rule);
-
-	for (let o = s; o <= e; o++)
+	render(encoder)
 	{
-		offset.func(offset.loc, [(o * rule - obj_t[2]) * obj_s]);
+		if (!this.show) return;
 
-		if (0 === o)
+		const iset = index_sets['axes'];
+
+		encoder.setPipeline(this.pipeline);
+		encoder.setBindGroup(0, this.bindGroup);
+		encoder.setVertexBuffer(0, vertex_sets['axes'].buffer);
+		encoder.setIndexBuffer(iset.buffer, iset.type);
+		encoder.drawIndexed(iset.count);
+
+/*
+		// draw the rules
+		program = programs['rules'];
+		attrib = program.attributes['aPos'];
+		o_buffer = ebuffers['origin'];
+		r_buffer = ebuffers['rule'];
+		proj = program.matrices['uProj'];
+		trans = program.matrices['uTrans'];
+		color = program.uniforms['uColor'];
+		let offset = program.uniforms['uOffset'];
+		let uni_scale = program.uniforms['uScale'];
+
+		gl.useProgram(program.loc);
+		gl.bindBuffer(gl.ARRAY_BUFFER, buffers['axis']);
+		gl.vertexAttribPointer(attrib.loc, attrib.len, attrib.type, false, attrib.stride, attrib.offset);
+		gl.enableVertexAttribArray(attrib.loc);
+		gl.enable(gl.DEPTH_TEST)
+
+		// draw the x rules
+		gl.uniformMatrix4fv(trans.loc, false, xtrans);
+		gl.uniformMatrix4fv(proj.loc, false, cam_mat);
+		color.func(color.loc, colorX);
+
+		let rule = Math.exp(Math.floor(Math.log10(1.0 / obj_s) - 1) * log10);
+
+		let s = Math.ceil((obj_t[0] - .9 / obj_s) / rule);
+		let e = Math.floor((obj_t[0] + .9 / obj_s) / rule);
+
+		for (let o = s; o <= e; o++)
 		{
-			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, o_buffer);
-			uni_scale.func(uni_scale.loc, [ .02 ]);
-			gl.drawElements(gl.LINE_LOOP, 4, gl.UNSIGNED_SHORT, 0);
+			offset.func(offset.loc, [(o * rule - obj_t[0]) * obj_s]);
+
+			if (0 === o)
+			{
+				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, o_buffer);
+				uni_scale.func(uni_scale.loc, [ .02 ]);
+				gl.drawElements(gl.LINE_LOOP, 4, gl.UNSIGNED_SHORT, 0);
+			}
+			else
+			{
+				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, r_buffer);
+				uni_scale.func(uni_scale.loc, [(o % 10 === 0) ? .03 : (o % 5 === 0) ? .02 : .01]);
+				gl.drawElements(gl.LINES, 4, gl.UNSIGNED_SHORT, 0);
+			}
 		}
-		else
+
+		// draw the y rules
+		gl.uniformMatrix4fv(trans.loc, false, ytrans);
+		gl.uniformMatrix4fv(proj.loc, false, cam_mat);
+		color.func(color.loc, colorY);
+
+		s = Math.ceil((obj_t[1] - .9 / obj_s) / rule);
+		e = Math.floor((obj_t[1] + .9 / obj_s) / rule);
+
+		for (let o = s; o <= e; o++)
 		{
-			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, r_buffer);
-			uni_scale.func(uni_scale.loc, [(o % 10 === 0) ? .03 : (o % 5 === 0) ? .02 : .01]);
-			gl.drawElements(gl.LINES, 4, gl.UNSIGNED_SHORT, 0);
+			offset.func(offset.loc, [(o * rule - obj_t[1]) * obj_s]);
+
+			if (0 === o)
+			{
+				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, o_buffer);
+				uni_scale.func(uni_scale.loc, [.02]);
+				gl.drawElements(gl.LINE_LOOP, 4, gl.UNSIGNED_SHORT, 0);
+			}
+			else
+			{
+				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, r_buffer);
+				uni_scale.func(uni_scale.loc, [(o % 10 === 0) ? .03 : (o % 5 === 0) ? .02 : .01]);
+				gl.drawElements(gl.LINES, 4, gl.UNSIGNED_SHORT, 0);
+			}
 		}
+
+
+		// draw the x rules
+		gl.uniformMatrix4fv(trans.loc, false, ztrans);
+		gl.uniformMatrix4fv(proj.loc, false, cam_mat);
+		color.func(color.loc, colorZ);
+
+		s = Math.ceil((obj_t[2] - .9 / obj_s) / rule);
+		e = Math.floor((obj_t[2] + .9 / obj_s) / rule);
+
+		for (let o = s; o <= e; o++)
+		{
+			offset.func(offset.loc, [(o * rule - obj_t[2]) * obj_s]);
+
+			if (0 === o)
+			{
+				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, o_buffer);
+				uni_scale.func(uni_scale.loc, [ .02 ]);
+				gl.drawElements(gl.LINE_LOOP, 4, gl.UNSIGNED_SHORT, 0);
+			}
+			else
+			{
+				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, r_buffer);
+				uni_scale.func(uni_scale.loc, [(o % 10 === 0) ? .03 : (o % 5 === 0) ? .02 : .01]);
+				gl.drawElements(gl.LINES, 4, gl.UNSIGNED_SHORT, 0);
+			}
+		}
+*/
 	}
 }

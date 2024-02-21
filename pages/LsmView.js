@@ -84,20 +84,20 @@ class LsmView
 
 	recalc()
 	{
-		let d = Math.min(gl.canvas.width, gl.canvas.height);
+		let d = Math.min(canvas.width, canvas.height);
 
 		const pers = document.toolbar.pers?.checked ? this.sPers : 0;
 
 		const near = (0 === pers) ? -far : -Math.min(far, 1 / pers - .01);
 
-		const c10 = (pers * far + pers * near + 2) / (far - near);
-		const c14 = (-pers * far * near - far - near) / (far - near);
+		const c10 = (pers * far + 1) / (far - near);
+		const c14 = near * (pers * far + 1) / (near - far);
 
-		return new Float32Array([
-			d / gl.canvas.width,	0,						0,		0,
-			0,						d / gl.canvas.height,	0,		0,
-			0,						0,						c10,	pers,
-			0,						0,						c14,	1
-		]);
+		device.queue.writeBuffer(c2fBuffer, 0, new Float32Array([
+			d / canvas.width,	0,					0,		0,
+			0,					d / canvas.height,	0,		0,
+			0,					0,					c10,	pers,
+			0,					0,					c14,	1
+		]));
 	}
 }
