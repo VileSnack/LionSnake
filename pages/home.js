@@ -24,7 +24,7 @@ async function onLoad()
 
 		device.queue.writeBuffer(vset.buffer, 0, vset.data);
 
-//		delete vset.data;
+		delete vset.data;
 		console.log(`Vertex set "${key}" built.`);
 	}
 
@@ -43,7 +43,7 @@ async function onLoad()
 
 		device.queue.writeBuffer(iset.buffer, 0, iset.data);
 
-//		delete iset.data;
+		delete iset.data;
 		console.log(`Index set "${key}" built.`);
 	}
 

@@ -52,8 +52,18 @@ class LsmAxes
 				targets: [
 					{
 						format: navigator.gpu.getPreferredCanvasFormat(),
-					},
-				],
+						blend: {
+							color: {
+								srcFactor: 'one',
+								dstFactor: 'one-minus-src-alpha'
+							},
+							alpha: {
+								srcFactor: 'one',
+								dstFactor: 'one-minus-src-alpha'
+							}
+						}
+					}
+				]
 			},
 			primitive: {
 				topology: 'line-list'
