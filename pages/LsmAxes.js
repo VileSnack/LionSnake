@@ -1,6 +1,6 @@
-const colorX = new Float32Array([1,0,0,1]);
-const colorY = new Float32Array([0,1,0,1]);
-const colorZ = new Float32Array([0,0,1,1]);
+const colorX = [1,0,0,1];
+const colorY = [0,1,0,1];
+const colorZ = [0,0,1,1];
 
 class LsmAxes
 {
@@ -11,15 +11,41 @@ class LsmAxes
 					shaderLocation: 0,
 					offset: 0,
 					format: "float32x4",
-				},
+				}
+			],
+			arrayStride: 16,
+			stepMode: "vertex"
+		},
+		{
+			attributes: [
 				{
 					shaderLocation: 1,
+					offset: 0,
+					format: "float32x4",
+				},
+				{
+					shaderLocation: 2,
 					offset: 16,
+					format: "float32x4",
+				},
+				{
+					shaderLocation: 3,
+					offset: 32,
+					format: "float32x4",
+				},
+				{
+					shaderLocation: 4,
+					offset: 48,
+					format: "float32x4",
+				},
+				{
+					shaderLocation: 5,
+					offset: 64,
 					format: "float32x4",
 				}
 			],
-			arrayStride: 32,
-			stepMode: "vertex"
+			arrayStride: 80,
+			stepMode: "instance"
 		}
 	];
 
@@ -30,12 +56,12 @@ class LsmAxes
 		this.translate = [0,0,0];
 		this.show = true;
 
-		this.transBuffer = device.createBuffer({
-			size: 64,
-			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+		this.instanceBuffer = device.createBuffer({
+			size: 240,
+			usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST
 		});
 
-		device.queue.writeBuffer(this.transBuffer, 0, new Float32Array(identity));
+		this.setRotate([1,0,0, 0,1,0, 0,0,1]);
 
 		//----------------------------------------------------------------------------------------------
 		// Create the render pipeline for this render pass.
@@ -51,24 +77,19 @@ class LsmAxes
 				entryPoint: 'fragment_main',
 				targets: [
 					{
-						format: navigator.gpu.getPreferredCanvasFormat(),
-						blend: {
-							color: {
-								srcFactor: 'one',
-								dstFactor: 'one-minus-src-alpha'
-							},
-							alpha: {
-								srcFactor: 'one',
-								dstFactor: 'one-minus-src-alpha'
-							}
-						}
+						format: navigator.gpu.getPreferredCanvasFormat()
 					}
 				]
 			},
 			primitive: {
 				topology: 'line-list'
 			},
-			layout: 'auto'
+			layout: 'auto',
+			depthStencil: {
+				depthWriteEnabled: true,
+				depthCompare: "less",
+				format: "depth24plus",
+			}
 		};
 
 		this.pipeline = device.createRenderPipeline(pipelineDescriptor);
@@ -76,8 +97,7 @@ class LsmAxes
 		this.bindGroup = device.createBindGroup({
 			layout: this.pipeline.getBindGroupLayout(0),
 			entries: [
-				{ binding: 0, resource: { buffer: this.transBuffer }},
-				{ binding: 1, resource: { buffer: c2fBuffer }}
+				{ binding: 0, resource: { buffer: c2fBuffer }}
 			],
 		});
 	}
@@ -87,11 +107,22 @@ class LsmAxes
 	setRotate(newRotate)
 	{
 		this.rotate = [...newRotate];
-		device.queue.writeBuffer(this.transBuffer, 0, new Float32Array([
+		device.queue.writeBuffer(this.instanceBuffer, 0, new Float32Array([
 			newRotate[0],	newRotate[1],	newRotate[2],	0,
 			newRotate[3],	newRotate[4],	newRotate[5],	0,
 			newRotate[6],	newRotate[7],	newRotate[8],	0,
-			0,				0,				0,				1
+			0,				0,				0,				1,
+			...colorX,
+			newRotate[3],	newRotate[4],	newRotate[5],	0,
+			newRotate[6],	newRotate[7],	newRotate[8],	0,
+			newRotate[0],	newRotate[1],	newRotate[2],	0,
+			0,				0,				0,				1,
+			...colorY,
+			newRotate[6],	newRotate[7],	newRotate[8],	0,
+			newRotate[0],	newRotate[1],	newRotate[2],	0,
+			newRotate[3],	newRotate[4],	newRotate[5],	0,
+			0,				0,				0,				1,
+			...colorZ
 		]));
 	}
 
@@ -108,8 +139,9 @@ class LsmAxes
 		encoder.setPipeline(this.pipeline);
 		encoder.setBindGroup(0, this.bindGroup);
 		encoder.setVertexBuffer(0, vertex_sets['axes'].buffer);
+		encoder.setVertexBuffer(1, this.instanceBuffer);
 		encoder.setIndexBuffer(iset.buffer, iset.type);
-		encoder.drawIndexed(iset.count);
+		encoder.drawIndexed(iset.count, 3);
 
 /*
 		// draw the rules

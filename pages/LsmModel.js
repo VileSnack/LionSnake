@@ -528,6 +528,7 @@ class LsmModel extends LsmProject
 			this.obj_r = [0,0,-1, 1,0,0, 0,1,0];
 		}
 
+		this.axes.setRotate(this.obj_r);
 		this.recalcHoverPoints();
 	}
 
@@ -542,6 +543,7 @@ class LsmModel extends LsmProject
 			this.obj_r = [0,0,1, -1,0,0, 0,1,0];
 		}
 
+		this.axes.setRotate(this.obj_r);
 		this.recalcHoverPoints();
 	}
 
@@ -556,6 +558,7 @@ class LsmModel extends LsmProject
 			this.obj_r = [-1,0,0, 0,0,-1, 0,1,0];
 		}
 
+		this.axes.setRotate(this.obj_r);
 		this.recalcHoverPoints();
 	}
 
@@ -570,6 +573,7 @@ class LsmModel extends LsmProject
 			this.obj_r = [1,0,0, 0,0,1, 0,1,0];
 		}
 
+		this.axes.setRotate(this.obj_r);
 		this.recalcHoverPoints();
 	}
 
@@ -584,6 +588,7 @@ class LsmModel extends LsmProject
 			this.obj_r = [1,0,0, 0,1,0, 0,0,-1];
 		}
 
+		this.axes.setRotate(this.obj_r);
 		this.recalcHoverPoints();
 	}
 
@@ -598,6 +603,7 @@ class LsmModel extends LsmProject
 			this.obj_r = [-1,0,0, 0,1,0, 0,0,1];
 		}
 
+		this.axes.setRotate(this.obj_r);
 		this.recalcHoverPoints();
 	}
 }

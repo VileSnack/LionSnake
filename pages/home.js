@@ -102,15 +102,24 @@ function animationLoop(timeStamp)
 
 	const rect = canvas.getBoundingClientRect();
 
-	canvas.width = rect.width;
-	canvas.height = rect.height;
+	if (canvas.width !== rect.width || canvas.height != rect.height)
+	{
+		canvas.width = rect.width;
+		canvas.height = rect.height;
+
+		depthTexture = device.createTexture({
+			size: [canvas.width, canvas.height],
+			format: "depth24plus",
+			usage: GPUTextureUsage.RENDER_ATTACHMENT,
+		});
+	}
 
 	//----------------------------------------------------------------------------------------------
 	// Create a render pass.
 	//
 	const commandEncoder = device.createCommandEncoder();
 
-	const renderPassDescriptor = {
+	renderPassDescriptor = {
 		colorAttachments: [
 			{
 				clearValue: backgroundColor,
@@ -119,6 +128,12 @@ function animationLoop(timeStamp)
 				view: context.getCurrentTexture().createView(),
 			},
 		],
+		depthStencilAttachment: {
+			view: depthTexture.createView(),
+			depthClearValue: 1.0,
+			depthLoadOp: "clear",
+			depthStoreOp: "store",
+		}
 	};
 
 	const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);

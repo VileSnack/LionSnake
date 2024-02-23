@@ -1,16 +1,22 @@
 const modules = {};
 const shaders = {
 	'mono':
-		'struct VertexIn { @location(0) position : vec4f, @location(1) color : vec4f };'
+		'struct VertexIn {'
+		+ ' @location(0) position : vec4f,'
+		+ ' @location(1) transX : vec4f,'
+		+ ' @location(2) transY : vec4f,'
+		+ ' @location(3) transZ : vec4f,'
+		+ ' @location(4) transL : vec4f,'
+		+ ' @location(5) color : vec4f'
+		+ ' };'
 		+ ' struct VertexOut { @builtin(position) position : vec4f, @location(0) color : vec4f };'
 
-		+ ' @group(0) @binding(0) var<uniform> uniTrans: mat4x4f;'
-		+ ' @group(0) @binding(1) var<uniform> uniProj: mat4x4f;'
+		+ ' @group(0) @binding(0) var<uniform> uniProj: mat4x4f;'
 
 		+ ' @vertex fn vertex_main(input: VertexIn) -> VertexOut'
 		+ ' {'
 		+ ' 	var output : VertexOut;'
-		+ ' 	output.position = uniProj * uniTrans * input.position;'
+		+ ' 	output.position = uniProj * mat4x4f(input.transX, input.transY, input.transZ, input.transL) * input.position;'
 		+ ' 	output.color = input.color;'
 		+ ' 	return output;'
 		+ ' }'
