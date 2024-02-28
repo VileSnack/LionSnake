@@ -56,7 +56,12 @@ class LsmAxes
 		this.translate = [0,0,0];
 		this.show = true;
 
-		this.instanceBuffer = device.createBuffer({
+		this.axisInstanceBuffer = device.createBuffer({
+			size: 240,
+			usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST
+		});
+
+		this.gratInstanceBuffer = device.createBuffer({
 			size: 240,
 			usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST
 		});
@@ -92,41 +97,79 @@ class LsmAxes
 			}
 		};
 
-		this.pipeline = device.createRenderPipeline(pipelineDescriptor);
+		this.pipeline1 = device.createRenderPipeline(pipelineDescriptor);
+		this.pipeline2 = device.createRenderPipeline(pipelineDescriptor);
 
-		this.bindGroup = device.createBindGroup({
-			layout: this.pipeline.getBindGroupLayout(0),
+		this.bindGroup1 = device.createBindGroup({
+			layout: this.pipeline1.getBindGroupLayout(0),
+			entries: [
+				{ binding: 0, resource: { buffer: c2fBuffer }}
+			],
+		});
+
+		this.bindGroup2 = device.createBindGroup({
+			layout: this.pipeline2.getBindGroupLayout(0),
 			entries: [
 				{ binding: 0, resource: { buffer: c2fBuffer }}
 			],
 		});
 	}
 
-	setScale(newScale) { this.scale = newScale; }
-
-	setRotate(newRotate)
+	setAxisTransforms()
 	{
-		this.rotate = [...newRotate];
-		device.queue.writeBuffer(this.instanceBuffer, 0, new Float32Array([
-			newRotate[0],	newRotate[1],	newRotate[2],	0,
-			newRotate[3],	newRotate[4],	newRotate[5],	0,
-			newRotate[6],	newRotate[7],	newRotate[8],	0,
+		device.queue.writeBuffer(this.axisInstanceBuffer, 0, new Float32Array([
+			this.rotate[0],	this.rotate[1],	this.rotate[2],	0,
+			this.rotate[3],	this.rotate[4],	this.rotate[5],	0,
+			this.rotate[6],	this.rotate[7],	this.rotate[8],	0,
 			0,				0,				0,				1,
 			...colorX,
-			newRotate[3],	newRotate[4],	newRotate[5],	0,
-			newRotate[6],	newRotate[7],	newRotate[8],	0,
-			newRotate[0],	newRotate[1],	newRotate[2],	0,
+			this.rotate[3],	this.rotate[4],	this.rotate[5],	0,
+			this.rotate[6],	this.rotate[7],	this.rotate[8],	0,
+			this.rotate[0],	this.rotate[1],	this.rotate[2],	0,
 			0,				0,				0,				1,
 			...colorY,
-			newRotate[6],	newRotate[7],	newRotate[8],	0,
-			newRotate[0],	newRotate[1],	newRotate[2],	0,
-			newRotate[3],	newRotate[4],	newRotate[5],	0,
+			this.rotate[6],	this.rotate[7],	this.rotate[8],	0,
+			this.rotate[0],	this.rotate[1],	this.rotate[2],	0,
+			this.rotate[3],	this.rotate[4],	this.rotate[5],	0,
 			0,				0,				0,				1,
+			...colorZ
+		]));
+
+		device.queue.writeBuffer(this.gratInstanceBuffer, 0, new Float32Array([
+			this.rotate[0],	this.rotate[1],	this.rotate[2],	0,
+			this.rotate[3],	this.rotate[4],	this.rotate[5],	0,
+			this.rotate[6],	this.rotate[7],	this.rotate[8],	0,
+			-this.translate[0] * this.scale * this.rotate[0],				-this.translate[0] * this.scale * this.rotate[1],				-this.translate[0] * this.scale * this.rotate[2],				1,
+			...colorX,
+			this.rotate[3],	this.rotate[4],	this.rotate[5],	0,
+			this.rotate[6],	this.rotate[7],	this.rotate[8],	0,
+			this.rotate[0],	this.rotate[1],	this.rotate[2],	0,
+			-this.translate[1] * this.scale * this.rotate[3],				-this.translate[1] * this.scale * this.rotate[4],				-this.translate[1] * this.scale * this.rotate[5],				1,
+			...colorY,
+			this.rotate[6],	this.rotate[7],	this.rotate[8],	0,
+			this.rotate[0],	this.rotate[1],	this.rotate[2],	0,
+			this.rotate[3],	this.rotate[4],	this.rotate[5],	0,
+			-this.translate[2] * this.scale * this.rotate[6],				-this.translate[2] * this.scale * this.rotate[7],				-this.translate[2] * this.scale * this.rotate[8],				1,
 			...colorZ
 		]));
 	}
 
-	setTranslate(newTranslate) { this.translate = [...newTranslate]; }
+	setScale(newScale) {
+		this.scale = newScale;
+		this.setAxisTransforms();
+	}
+
+	setRotate(newRotate)
+	{
+		this.rotate = [...newRotate];
+		this.setAxisTransforms();
+	}
+
+	setTranslate(newTranslate)
+	{
+		this.translate = [...newTranslate];
+		this.setAxisTransforms();
+	}
 
 	setShow(newShow) { this.show = newShow; }
 
@@ -134,12 +177,21 @@ class LsmAxes
 	{
 		if (!this.show) return;
 
-		const iset = index_sets['axes'];
+		let iset = index_sets['axes'];
 
-		encoder.setPipeline(this.pipeline);
-		encoder.setBindGroup(0, this.bindGroup);
+		encoder.setPipeline(this.pipeline1);
+		encoder.setBindGroup(0, this.bindGroup1);
 		encoder.setVertexBuffer(0, vertex_sets['axes'].buffer);
-		encoder.setVertexBuffer(1, this.instanceBuffer);
+		encoder.setVertexBuffer(1, this.axisInstanceBuffer);
+		encoder.setIndexBuffer(iset.buffer, iset.type);
+		encoder.drawIndexed(iset.count, 3);
+
+		iset = index_sets['grat'];
+
+		encoder.setPipeline(this.pipeline2);
+		encoder.setBindGroup(0, this.bindGroup2);
+		encoder.setVertexBuffer(0, vertex_sets['grat'].buffer);
+		encoder.setVertexBuffer(1, this.gratInstanceBuffer);
 		encoder.setIndexBuffer(iset.buffer, iset.type);
 		encoder.drawIndexed(iset.count, 3);
 

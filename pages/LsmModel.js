@@ -438,6 +438,8 @@ class LsmModel extends LsmProject
 				const mag1 = dx1 * dx1 + dy1 * dy1;
 				const mag2 = dx2 * dx2 + dy2 * dy2;
 				if (mag2 !== 0) this.obj_s = Math.max(1e-6, Math.min(1e3,this.obj_s_save * Math.sqrt(mag2 / mag1)));
+
+				this.axes.setScale(this.obj_s);
 			break;
 			case 'd_r':
 				const aX = this.downY - mY;
@@ -463,7 +465,7 @@ class LsmModel extends LsmProject
 						]
 					);
 				}
-				
+
 				this.axes.setRotate(this.obj_r);
 			break;
 			case 'd_t':
@@ -475,6 +477,8 @@ class LsmModel extends LsmProject
 					this.obj_t_save[1] - this.obj_r[3] * dx - this.obj_r[4] * dy,
 					this.obj_t_save[2] - this.obj_r[6] * dx - this.obj_r[7] * dy
 				];
+
+				this.axes.setTranslate(this.obj_t);
 			break;
 			case 'p':
 				this.vhover = null;
@@ -515,7 +519,7 @@ class LsmModel extends LsmProject
 		}
 	}
 
-	toOrigin() { this.obj_t = [0,0,0]; }
+	toOrigin() { this.obj_t = [0,0,0]; this.axes.setTranslate(this.obj_t); }
 
 	xneg()
 	{
