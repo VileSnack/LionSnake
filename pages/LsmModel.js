@@ -106,10 +106,14 @@ class LsmModel extends LsmProject
 
 		this.vcount = vdata.length;
 
-		this.vbuffer = gl.createBuffer();
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.vbuffer);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vdata), gl.STATIC_DRAW);
+		this.vbuffer = device.createBuffer({
+			size: this.vcount * 12,	// 3 floats per vertex, 4 bytes per float
+			label: 'vertex buffer for a model',
+			usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST
+		});
+		device.queue.writeBuffer(this.vbuffer, 0, new Float32Array(vdata));
 
+/*
 		const edata = [];
 
 		this.edges.forEach(edge => {
@@ -196,7 +200,7 @@ class LsmModel extends LsmProject
 		this.tbuffer = gl.createBuffer();
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.tbuffer);
 		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(tdata), gl.STATIC_DRAW);
-
+*/
 		if (document.toolbar?.mode.value === 'sel')
 		{
 			this.recalcHoverPoints();
@@ -217,6 +221,7 @@ class LsmModel extends LsmProject
 				loc[0] * this.obj_r[1] + loc[1] * this.obj_r[4] + loc[2] * this.obj_r[7],
 				loc[0] * this.obj_r[2] + loc[1] * this.obj_r[5] + loc[2] * this.obj_r[8]
 			];
+			console.log(this.cam_proj);
 			loc = [
 				loc[0] * this.cam_proj[0] + loc[1] * this.cam_proj[4] + loc[2] * this.cam_proj[8] + this.cam_proj[12],
 				loc[0] * this.cam_proj[1] + loc[1] * this.cam_proj[5] + loc[2] * this.cam_proj[9] + this.cam_proj[13],
