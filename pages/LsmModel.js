@@ -214,32 +214,32 @@ class LsmModel extends LsmProject
 
 	recalcHoverPoints()
 	{
-		this.verts.forEach((vert) => {
-			let loc = [(vert.x - this.obj_t[0]) * this.obj_s, (vert.y - this.obj_t[1]) * this.obj_s, (vert.z - this.obj_t[2]) * this.obj_s];
-			loc = [
-				loc[0] * this.obj_r[0] + loc[1] * this.obj_r[3] + loc[2] * this.obj_r[6],
-				loc[0] * this.obj_r[1] + loc[1] * this.obj_r[4] + loc[2] * this.obj_r[7],
-				loc[0] * this.obj_r[2] + loc[1] * this.obj_r[5] + loc[2] * this.obj_r[8]
-			];
-			console.log(this.cam_proj);
-			loc = [
-				loc[0] * this.cam_proj[0] + loc[1] * this.cam_proj[4] + loc[2] * this.cam_proj[8] + this.cam_proj[12],
-				loc[0] * this.cam_proj[1] + loc[1] * this.cam_proj[5] + loc[2] * this.cam_proj[9] + this.cam_proj[13],
-				loc[0] * this.cam_proj[2] + loc[1] * this.cam_proj[6] + loc[2] * this.cam_proj[10] + this.cam_proj[14],
-				loc[0] * this.cam_proj[3] + loc[1] * this.cam_proj[7] + loc[2] * this.cam_proj[11] + this.cam_proj[15]
-			];
-			if (loc[3] !== 0)
-			{
-				vert.pX = Math.floor((loc[0] / loc[3] + 1) * .5 * canvas.width +.5);
-				vert.pY = Math.floor((1 - loc[1] / loc[3]) * .5 * canvas.height +.5);
-				vert.depth = loc[3];
-			}
-			else
-			{
-				vert.pX = -1e6;
-				vert.pY = -1e6;
-			}
-		});
+		// this.verts.forEach((vert) => {
+			// let loc = [(vert.x - this.obj_t[0]) * this.obj_s, (vert.y - this.obj_t[1]) * this.obj_s, (vert.z - this.obj_t[2]) * this.obj_s];
+			// loc = [
+				// loc[0] * this.obj_r[0] + loc[1] * this.obj_r[3] + loc[2] * this.obj_r[6],
+				// loc[0] * this.obj_r[1] + loc[1] * this.obj_r[4] + loc[2] * this.obj_r[7],
+				// loc[0] * this.obj_r[2] + loc[1] * this.obj_r[5] + loc[2] * this.obj_r[8]
+			// ];
+			// console.log(this.cam_proj);
+			// loc = [
+				// loc[0] * this.cam_proj[0] + loc[1] * this.cam_proj[4] + loc[2] * this.cam_proj[8] + this.cam_proj[12],
+				// loc[0] * this.cam_proj[1] + loc[1] * this.cam_proj[5] + loc[2] * this.cam_proj[9] + this.cam_proj[13],
+				// loc[0] * this.cam_proj[2] + loc[1] * this.cam_proj[6] + loc[2] * this.cam_proj[10] + this.cam_proj[14],
+				// loc[0] * this.cam_proj[3] + loc[1] * this.cam_proj[7] + loc[2] * this.cam_proj[11] + this.cam_proj[15]
+			// ];
+			// if (loc[3] !== 0)
+			// {
+				// vert.pX = Math.floor((loc[0] / loc[3] + 1) * .5 * canvas.width +.5);
+				// vert.pY = Math.floor((1 - loc[1] / loc[3]) * .5 * canvas.height +.5);
+				// vert.depth = loc[3];
+			// }
+			// else
+			// {
+				// vert.pX = -1e6;
+				// vert.pY = -1e6;
+			// }
+		// });
 	}
 
 	render(encoder, time)
@@ -422,7 +422,7 @@ class LsmModel extends LsmProject
 	onMouseUp(e)
 	{
 		this.recalcHoverPoints();
-		this.mouseMode = document.toolbar.mode.value;
+		this.mouseMode = '';
 		this.vhover = null;
 	}
 
