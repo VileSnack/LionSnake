@@ -15,13 +15,14 @@ Progress:
 2025-07-04:
 - Started over.
 - Hollowed out `LsmProject.js`
-- Added LsmProject.ctor()
-	- Raises alert for entering and entering
-- Added LsmEmptyProject.js
-- Added LsmEmptyProject.ctor()
-	- Raises alert for entering
-	- Calls LsmProject.ctor()
-	- Raises alert for exiting
-- Added /Test pages/test0001.html
+- Added `LsmProject.ctor()`
+	- Writes to log for entering and entering
+- Added `LsmEmptyProject.js`
+- Added `LsmEmptyProject.ctor()`
+	- Writes to log for entering
+	- Calls `LsmProject.ctor()`
+	- Writes to log for exiting
+- Added `/Test pages/test0001.html`
 	- Creates a LsmEmptyProject object
-	- User should see the four alerts described above, with the base class alerts nested between the derived class alerts.
+	- User should see the log entries if the console is open, with the base class logs nested between the derived class logs.
+
